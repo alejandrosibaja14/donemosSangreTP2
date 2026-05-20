@@ -3,6 +3,52 @@
 #Ultima actualización: xx/05/2026
 #Versión de python: 3.14
 #Definición de funciones
+def cargarBaseDatos(rutaArchivo):
+    matrizBaseDatos= []
+    archivo= open(rutaArchivo, "r")
+    lineas= archivo.readlines()
+    archivo.close()
+    indiceLinea= 0
+    while indiceLinea< len(lineas):
+        lineaActual= lineas[indiceLinea].strip() 
+        if lineaActual!= "":
+            datosSeparados= lineaActual.split(",")
+            nombreCompleto= [datosSeparados[0], datosSeparados[1], datosSeparados[2]]
+            cedula= int(datosSeparados[3])
+            tipoSangreStr= datosSeparados[4]
+            tipoSangreInt= 0
+            indiceTupla= 0
+            while indiceTupla< len(tiposDeSangre):
+                if tiposDeSangre[indiceTupla]== tipoSangreStr:
+                    tipoSangreInt= indiceTupla
+                indiceTupla= indiceTupla + 1
+            sexo= False
+            if datosSeparados[5]== "Masculino":
+                sexo= True
+            fechaNacimiento= datosSeparados[6]
+            peso= float(datosSeparados[7])
+            correo= datosSeparados[8]
+            telefono= int(datosSeparados[9])
+            estado= False
+            if datosSeparados[10]== "Activo":
+                estado= True
+            justificacion= datosSeparados[11]
+            registroDonador= [
+                nombreCompleto,   
+                cedula,           
+                tipoSangreInt,    
+                sexo,             
+                fechaNacimiento,  
+                peso,             
+                correo,           
+                telefono,         
+                estado,           
+                justificacion     
+            ]
+            matrizBaseDatos= matrizBaseDatos+ [registroDonador]
+        indiceLinea= indiceLinea + 1
+    return matrizBaseDatos
+    
 def mostrarMenu():
     print("\n===== DONEMOS SANGRE =====")
     print("1. Insertar donante")
