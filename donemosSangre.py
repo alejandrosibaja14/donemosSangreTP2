@@ -3,6 +3,7 @@
 #Ultima actualización: xx/05/2026
 #Versión de python: 3.14
 #Definición de funciones
+import re
 def cargarBaseDatos(rutaArchivo):
     matrizBaseDatos= []
     archivo= open(rutaArchivo, "r")
@@ -56,6 +57,53 @@ def mostrarMenu():
     print("3. Insertar lugar de donación")
     print("4. Reportes")
     print("5. Salir")
+
+def validarCedula(pcedula):
+    """
+    Funcionamiento: Valida que la cédula tenga el formato correcto.
+    Entradas: pcedula: cédula a validar.
+    Salidas: True si es válida, False si no lo es.
+    """
+    patron=r"^\d-\d{4}-\d{4}$"
+    if re.match(patron,pcedula):
+        return True
+    else: return False
+
+def validarEdad(pedad):
+    """
+    Funcionamiento: Verifica que la edad sea numérica y mayor o igual a 18.
+    Entradas: pedad: edad ingresada.
+    Salidas: True si es válida, False si no lo es.
+    """
+    if not pedad.isdigit():
+        return False
+    edad=int(pedad)
+    if edad<18:
+        return False
+    else: return True
+
+def validarTipoSangre(ptipoSangre,ptiposDeSangre):
+    """
+    Funcionamiento: Verifica que el tipo de sangre exista en la tupla .
+    Entradas: ptipoSangre: tipo de sangre ingresado.
+            ptiposDeSangre: tupla de tipos válidos.
+    Salidas: True si es válido, False si no lo es.
+    """
+    if ptipoSangre in ptiposDeSangre:
+        return True
+    else: return False
+
+def validarDonadorExistente(pcedula,pmatrizDonadores):
+    """
+    Funcionamiento: Verifica si una cédula ya se encuentra registrada.
+    Entradas: pcedula: cédula a buscar.
+            pmatrizDonadores: matriz de donadores.
+    Salidas: True si ya existe, False si no existe.
+    """
+    for donador in pmatrizDonadores:
+        if donador[0]==pcedula:
+            return True
+    else: return False
 
 def main():
     tiposDeSangre=("A+","A-","B+","B-","AB+","AB-","O+","O-")
