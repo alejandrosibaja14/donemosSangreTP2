@@ -22,12 +22,20 @@ def main():
         if opcion=="1":
             print("Insertar donante pendiente.")
         elif opcion=="2":
-            print("Eliminar donante pendiente.")
+            print("Modificar donante pendiente.")
         elif opcion=="3":
-            print("Insertar lugar de donación pendiente.")
+            print("Eliminar donante pendiente.")
         elif opcion=="4":
-            print("Reportes pendientes.")
+            print("Consultar donante pendiente.")
         elif opcion=="5":
+            print("Insertar lugar de donación pendiente.")
+        elif opcion=="6":
+            print("Modificar lugar de donación pendiente.")
+        elif opcion=="7":
+            print("Eliminar lugar de donación pendiente.")
+        elif opcion=="8":
+            print("Reportes pendientes.")
+        elif opcion=="9":
             print("Donar sangre, es donar vida")
             break
         else:
