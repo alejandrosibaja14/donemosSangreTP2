@@ -49,7 +49,38 @@ def cargarBaseDatos(rutaArchivo):
             matrizBaseDatos= matrizBaseDatos+ [registroDonador]
         indiceLinea= indiceLinea + 1
     return matrizBaseDatos
-    
+
+    def cargarLugaresDonacion():
+    lugaresPorProvincia= {
+        1: [
+            "El Banco Nacional de sangre", 
+            "Hospital México", 
+            "Hospital San Juan de Dios"
+        ],
+        2: [
+            "Hospital San Rafael de Alajuela", 
+            "Hospital de San Ramón", 
+            "Hospital del Cantón Norteño"
+        ],
+        3: [
+            "Hospital Max Peralta"
+        ],
+        4: [
+            "Hospital San Vicente de Paúl"
+        ],
+        5: [
+            "Hospital La Anexión en Nicoya", 
+            "Hospital Enrique Baltodano de Liberia"
+        ],
+        6: [
+            "Hospital Monseñor Sanabria"
+        ],
+        7: [
+            "Hospital Tony Facio", 
+            "Hospital de Guápiles"
+        ]
+    }
+    return lugaresPorProvincia
 def mostrarMenu():
     print("\n===== DONEMOS SANGRE =====")
     print("1. Insertar donante")
