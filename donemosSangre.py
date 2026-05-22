@@ -50,7 +50,7 @@ def cargarBaseDatos(rutaArchivo):
         indiceLinea= indiceLinea + 1
     return matrizBaseDatos
 
-    def cargarLugaresDonacion():
+def cargarLugaresDonacion():
     lugaresPorProvincia= {
         1: [
             "El Banco Nacional de sangre", 
@@ -136,6 +136,41 @@ def validarDonadorExistente(pcedula,pmatrizDonadores):
             return True
     else: return False
 
+def insertarDonante(pdonadores, pcedula, pnombre, pedad, psexo, ptipoSangre, pprovincia, ptiposDeSangre):
+    """
+    Funcionamiento: Valida y registra un nuevo donador en la matriz de donadores.
+    Entradas: pdonadores: matriz de donadores.
+            pcedula: cédula del donador.
+            pnombre: nombre completo del donador.
+            pedad: edad del donador.
+            psexo: sexo del donador.
+            ptipoSangre: tipo de sangre del donador.
+            pprovincia: provincia del donador.
+            ptiposDeSangre: tupla con tipos de sangre válidos.
+    Salidas: Matriz actualizada y mensaje de retroalimentación.
+    """
+    if not validarCedula(pcedula):
+        return pdonadores, "Cédula inválida. Vuelva a intentarlo con un número de cédula válido."
+    if validarDonadorExistente(pcedula, pdonadores):
+        return pdonadores, "El donador ingresado ya existe."
+    if not validarEdad(pedad):
+        return pdonadores, "La edad ingresada no es válida. Debe ingresar una edad mayor o igual a 18 años."
+    if psexo!="M" and psexo!="F":
+        return pdonadores, "Sexo inválido. Debe ingresar M en caso de masculino y F si es femenino."
+    if not validarTipoSangre(ptipoSangre, ptiposDeSangre):
+        return pdonadores, "Tipo de sangre inválido. Vuelva a intentarlo."
+    donador=[
+        pcedula,
+        pnombre.title(),
+        int(pedad),
+        psexo,
+        ptipoSangre,
+        pprovincia.title(),
+        True
+    ]
+    pdonadores.append(donador)
+    return pdonadores, "El donador fue registrado correctamente."
+
 def main():
     tiposDeSangre=("A+","A-","B+","B-","AB+","AB-","O+","O-")
     lugaresDeDonacion={"San José":[], "Alajuela":[], "Cartago":[], "Heredia":[], "Guanacaste":[],
@@ -145,7 +180,16 @@ def main():
         mostrarMenu()
         opcion=input("Seleccione la opción que desee ejecutar: ")
         if opcion=="1":
-            print("Insertar donante pendiente.")
+            print("\n===== INSERTAR DONANTE =====\n")
+            cedula=input("Ingrese la cédula del donador: ")
+            nombre=input("Ingrese el nombre completo del donador: ")
+            edad=input("Ingrese la edad del donador: ")
+            sexo=input("Ingrese el sexo del donador (M/F): ").upper()
+            tipoSangre=input("Ingrese el tipo de sangre del donador: ").upper()
+            provincia=input("Ingrese la provincia del donador: ")
+            donadores, mensaje=insertarDonante(donadores, cedula, nombre, edad, sexo, tipoSangre, provincia, tiposDeSangre)
+            print(mensaje)
+            print(donadores)
         elif opcion=="2":
             print("Modificar donante pendiente.")
         elif opcion=="3":
