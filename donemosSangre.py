@@ -136,7 +136,7 @@ def validarDonadorExistente(pcedula,pmatrizDonadores):
             return True
     else: return False
 
-def insertarDonante(pdonadores, pcedula, pnombre, pedad, psexo, ptipoSangre, pprovincia, ptiposDeSangre):
+def insertarDonante(pdonadores, pcedula, pnombre, pedad, psexo, ptipoSangre, pprovincia, ptiposDeSangre, plugaresDeDonacion):
     """
     Funcionamiento: Valida y registra un nuevo donador en la matriz de donadores.
     Entradas: pdonadores: matriz de donadores.
@@ -159,9 +159,11 @@ def insertarDonante(pdonadores, pcedula, pnombre, pedad, psexo, ptipoSangre, ppr
         return pdonadores, "Sexo inválido. Debe ingresar M en caso de masculino y F si es femenino."
     if not validarTipoSangre(ptipoSangre, ptiposDeSangre):
         return pdonadores, "Tipo de sangre inválido. Vuelva a intentarlo."
+    if not validarProvincia(pprovincia, plugaresDeDonacion):
+        return pdonadores, "Provincia inválida. Debe ingresar una provincia de Costa Rica."
     donador=[
         pcedula,
-        pnombre.title(),
+        " ".join(pnombre.split()).title(),
         int(pedad),
         psexo,
         ptipoSangre,
@@ -170,6 +172,17 @@ def insertarDonante(pdonadores, pcedula, pnombre, pedad, psexo, ptipoSangre, ppr
     ]
     pdonadores.append(donador)
     return pdonadores, "El donador fue registrado correctamente."
+
+def validarProvincia(pprovincia, plugaresDeDonacion):
+    """
+    Funcionamiento: Verifica que la provincia ingresada exista dentro del diccionario de lugares de donación.
+    Entradas: pprovincia: provincia ingresada.
+            plugaresDeDonacion: diccionario con provincias válidas.
+    Salidas: True si la provincia existe, False si no existe.
+    """
+    if pprovincia.title() in plugaresDeDonacion:
+        return True
+    else: return False
 
 def main():
     tiposDeSangre=("A+","A-","B+","B-","AB+","AB-","O+","O-")
@@ -189,7 +202,6 @@ def main():
             provincia=input("Ingrese la provincia del donador: ")
             donadores, mensaje=insertarDonante(donadores, cedula, nombre, edad, sexo, tipoSangre, provincia, tiposDeSangre)
             print(mensaje)
-            print(donadores)
         elif opcion=="2":
             print("Modificar donante pendiente.")
         elif opcion=="3":
