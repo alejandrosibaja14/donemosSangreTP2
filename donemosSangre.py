@@ -184,6 +184,17 @@ def validarProvincia(pprovincia, plugaresDeDonacion):
         return True
     else: return False
 
+def eliminarDonante(pcedula, pdonadores):
+    if not validarCedula(pcedula):
+        return pdonadores, "Cédula inválida. Vuelva a intentarlo."
+    for donador in pdonadores:
+        if donador[0]==pcedula:
+            if donador[6]==False:
+                return pdonadores,"El donador ya fue eliminado anteriormente."
+            donador[6]=False
+            return pdonadores,"Donador eliminado correctamente."
+    return pdonadores,"El donador solicitado no existe."
+
 def main():
     tiposDeSangre=("A+","A-","B+","B-","AB+","AB-","O+","O-")
     lugaresDeDonacion={"San José":[], "Alajuela":[], "Cartago":[], "Heredia":[], "Guanacaste":[],
@@ -205,7 +216,10 @@ def main():
         elif opcion=="2":
             print("Modificar donante pendiente.")
         elif opcion=="3":
-            print("Eliminar donante pendiente.")
+            print("\n===== ELIMINAR DONANTE =====\n")
+            cedula=input("Ingrese la cédula del donador a eliminar: ")
+            donadores,mensaje=eliminarDonante(cedula,donadores)
+            print(mensaje)
         elif opcion=="4":
             print("Consultar donante pendiente.")
         elif opcion=="5":
