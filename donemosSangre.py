@@ -81,6 +81,19 @@ def cargarLugaresDonacion():
         ]
     }
     return lugaresPorProvincia
+
+def buscarDonadorPorCedula(matrizBaseDatos, cedulaBuscar):
+    indice = 0
+    donadorEncontrado = [] 
+    while indice < len(matrizBaseDatos):
+        filaActual = matrizBaseDatos[indice]
+        if filaActual[1] == cedulaBuscar:
+            donadorEncontrado = filaActual
+            indice = len(matrizBaseDatos)
+        else:
+            indice = indice + 1
+            
+    return donadorEncontrado
 def mostrarMenu():
     print("\n===== DONEMOS SANGRE =====")
     print("1. Insertar donante")
