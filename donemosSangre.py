@@ -94,6 +94,33 @@ def buscarDonadorPorCedula(matrizBaseDatos, cedulaBuscar):
             indice = indice + 1
             
     return donadorEncontrado
+
+def actualizarDatos(
+    matrizBase, 
+    cedula, 
+    columna, 
+    nuevoDato
+):
+    indice= 0
+    largo= len(matrizBase)
+    exito= False
+    mensaje= "Error: Cedula no existe"
+    while indice< largo:
+        fila= matrizBase[indice]
+        if fila[1]== cedula:
+            fila[columna]= nuevoDato
+            matrizBase[indice]= fila
+            exito= True
+            mensaje= "Dato actualizado"
+            indice= largo
+        else:
+            indice= indice + 1
+    return [
+        matrizBase, 
+        mensaje, 
+        exito
+    ]
+
 def mostrarMenu():
     print("\n===== DONEMOS SANGRE =====")
     print("1. Insertar donante")
