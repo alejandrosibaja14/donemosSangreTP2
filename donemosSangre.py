@@ -208,6 +208,22 @@ def eliminarDonante(pcedula, pdonadores):
             return pdonadores,"Donador eliminado correctamente."
     return pdonadores,"El donador solicitado no existe."
 
+def insertarLugarDonacion(plugaresDonacion,pdonadores,pcedula,pprovincia):
+    donadorEncontrado=False
+    for donador in pdonadores:
+        if donador[0]==pcedula:
+            donadorEncontrado=True
+            if donador[6]==False:
+                return plugaresDonacion,"El donador está inactivo."
+            if pprovincia not in plugaresDonacion:
+                return plugaresDonacion,"La provincia ingresada no existe."
+            if pcedula in plugaresDonacion[pprovincia]:
+                return plugaresDonacion,"El donador ya fue agregado en esta provincia."
+            plugaresDonacion[pprovincia].append(pcedula)
+            return plugaresDonacion,"Lugar de donación agregado correctamente."
+    if not donadorEncontrado:
+        return plugaresDonacion,"El donador no existe."
+
 def main():
     tiposDeSangre=("A+","A-","B+","B-","AB+","AB-","O+","O-")
     lugaresDeDonacion={"San José":[], "Alajuela":[], "Cartago":[], "Heredia":[], "Guanacaste":[],
@@ -236,7 +252,11 @@ def main():
         elif opcion=="4":
             print("Consultar donante pendiente.")
         elif opcion=="5":
-            print("Insertar lugar de donación pendiente.")
+            print("\n===== INSERTAR LUGAR DE DONACIÓN =====\n")
+            cedula=input("Ingrese la cédula del donador: ")
+            provincia=input("Ingrese la provincia: ").title()
+            lugaresDeDonacion,mensaje=insertarLugarDonacion(lugaresDeDonacion, donadores, cedula, provincia)
+            print(mensaje)
         elif opcion=="6":
             print("Modificar lugar de donación pendiente.")
         elif opcion=="7":
