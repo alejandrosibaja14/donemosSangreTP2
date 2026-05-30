@@ -250,6 +250,26 @@ def insertarLugarDonacion(plugaresDonacion,pdonadores,pcedula,pprovincia):
             return plugaresDonacion,"Lugar de donación agregado correctamente."
     if not donadorEncontrado:
         return plugaresDonacion,"El donador no existe."
+    
+def obtenerReporteGeneral(pdonadores):
+    activos=0
+    inactivos=0
+    for donador in pdonadores:
+        if donador[6]:
+            activos+=1
+        else:
+            inactivos+=1
+    return activos,inactivos
+
+def contarDatos(pdonadores,pindice,pcategorias):
+    conteo={}
+    for categoria in pcategorias:
+        conteo[categoria]=0
+    for donador in pdonadores:
+        dato=donador[pindice]
+        if dato in conteo:
+            conteo[dato]+=1
+    return conteo
 
 def main():
     tiposDeSangre=("A+","A-","B+","B-","AB+","AB-","O+","O-")
@@ -289,7 +309,24 @@ def main():
         elif opcion=="7":
             print("Eliminar lugar de donación pendiente.")
         elif opcion=="8":
-            print("Reportes pendientes.")
+            print("\n===== REPORTES =====\n")
+            print("1. Cantidad de donadores por tipo de sangre")
+            print("2. Cantidad de donadores por provincia")
+            print("3. Donadores activos e inactivos")
+            opcionReporte=input("Seleccione el reporte que desea visualizar: ")
+            if opcionReporte=="1":
+                resultado=contarDatos(donadores,4,tiposDeSangre)
+                for tipo in resultado:
+                    print(tipo+":",resultado[tipo])
+            elif opcionReporte=="2":
+                provincias=("San José","Alajuela","Cartago","Heredia","Guanacaste","Puntarenas","Limón")
+                resultado=contarDatos(donadores,5,provincias)
+                for provincia in resultado:
+                    print(provincia+":",resultado[provincia])
+            elif opcionReporte=="3":
+                activos, inactivos=obtenerReporteGeneral(donadores)
+                print("Donadores activos:",activos)
+                print("Donadores inactivos:",inactivos)
         elif opcion=="9":
             print("Donar sangre, es donar vida")
             break
