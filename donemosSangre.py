@@ -121,6 +121,159 @@ def actualizarDatos(
         exito
     ]
 
+import datetime
+
+def generarReporteProvincia(
+    matrizBase,
+    nombreProvincia,
+    lugaresProvincia
+):
+    donadoresFiltrados = []
+    indice = 0
+    total = len(matrizBase)
+    
+    while indice < total:
+        fila = matrizBase[indice]
+        esActivo = fila[8]
+        
+        lugarDonacion = fila[9]
+        
+        if esActivo == True:
+            indLugar = 0
+            totLugares = len(
+                lugaresProvincia
+            )
+            encontrado = False
+            
+            while indLugar < totLugares:
+                lugarActual = (
+                    lugaresProvincia[
+                        indLugar
+                    ]
+                )
+                if lugarActual == lugarDonacion:
+                    encontrado = True
+                    indLugar = totLugares
+                else:
+                    indLugar = indLugar + 1
+                    
+            if encontrado == True:
+                donadoresFiltrados = (
+                    donadoresFiltrados +
+                    [fila]
+                )
+        indice = indice + 1
+        
+    totalFiltro = len(donadoresFiltrados)
+    indI = 0
+    
+    while indI < (totalFiltro - 1):
+        indJ = 0
+        limite = totalFiltro - indI - 1
+        
+        while indJ < limite:
+            donador1 = (
+                donadoresFiltrados[indJ]
+            )
+            donador2 = (
+                donadoresFiltrados[
+                    indJ + 1
+                ]
+            )
+            
+            nom1 = donador1[0]
+            texto1 = (
+                nom1[1] + nom1[2] + nom1[0]
+            )
+            
+            nom2 = donador2[0]
+            texto2 = (
+                nom2[1] + nom2[2] + nom2[0]
+            )
+            if texto1 > texto2:
+                temp = donadoresFiltrados[
+                    indJ
+                ]
+                donadoresFiltrados[
+                    indJ
+                ] = donadoresFiltrados[
+                    indJ + 1
+                ]
+                donadoresFiltrados[
+                    indJ + 1
+                ] = temp
+                
+            indJ = indJ + 1
+        indI = indI + 1
+    try:
+        fechaHora = str(
+            datetime.datetime.now()
+        )
+        
+        html = "<!DOCTYPE html>\n"
+        html = html + "<html>\n<head>\n"
+        html = html + "<title>"
+        html = html + "Reporte "
+        html = html + nombreProvincia
+        html = html + "</title>\n"
+        html = html + "</head>\n<body>\n"
+        html = html + "<h2>"
+        html = html + "Reporte Donantes: "
+        html = html + nombreProvincia
+        html = html + "</h2>\n"
+        html = html + "<p>Fecha: "
+        html = html + fechaHora
+        html = html + "</p>\n"
+        html = html + "<table border='1'>\n"
+        html = html + "<tr>"
+        html = html + "<th>Cedula</th>"
+        html = html + "<th>Nombre</th>"
+        html = html + "<th>Nacimiento</th>"
+        html = html + "<th>Telefono</th>"
+        html = html + "<th>Correo</th>"
+        html = html + "</tr>\n"
+        indHtml = 0
+        while indHtml < totalFiltro:
+            filaH = donadoresFiltrados[
+                indHtml
+            ]
+            ced = str(filaH[1])
+            nomCom = (
+                filaH[0][0] + " " +
+                filaH[0][1] + " " +
+                filaH[0][2]
+            )
+            nac = str(filaH[4])
+            tel = str(filaH[7])
+            cor = str(filaH[6])
+            html = html + "<tr>"
+            html = html + "<td>" + ced + "</td>"
+            html = html + "<td>" + nomCom + "</td>"
+            html = html + "<td>" + nac + "</td>"
+            html = html + "<td>" + tel + "</td>"
+            html = html + "<td>" + cor + "</td>"
+            html = html + "</tr>\n"
+            indHtml = indHtml + 1
+        html = html + "</table>\n"
+        html = html + "</body>\n</html>"
+        nombreArch = (
+            "Reporte_" + 
+            nombreProvincia + 
+            ".html"
+        )
+        archivo = open(
+            nombreArch, 
+            "w", 
+            encoding="utf-8"
+        )
+        archivo.write(html)
+        archivo.close()
+        
+        return "Reporte creado satisfactoriamente"
+        
+    except:
+        return "Reporte no creado."
+
 def mostrarMenu():
     print("\n===== DONEMOS SANGRE =====")
     print("1. Insertar donante")
