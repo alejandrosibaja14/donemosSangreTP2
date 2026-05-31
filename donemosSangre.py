@@ -424,6 +424,23 @@ def contarDatos(pdonadores,pindice,pcategorias):
             conteo[dato]+=1
     return conteo
 
+def modificarLugarDonacion(plugaresDonacion,pcedula,pnuevaProvincia):
+    if pnuevaProvincia not in plugaresDonacion:
+        return plugaresDonacion,"La provincia ingresada no existe."
+    for provincia in plugaresDonacion:
+        if pcedula in plugaresDonacion[provincia]:
+            plugaresDonacion[provincia].remove(pcedula)
+            plugaresDonacion[pnuevaProvincia].append(pcedula)
+            return plugaresDonacion,"Lugar de donación modificado correctamente."
+    return plugaresDonacion,"El donador no tiene lugar de donación registrado."
+
+def eliminarLugarDonacion(plugaresDonacion,pcedula):
+    for provincia in plugaresDonacion:
+        if pcedula in plugaresDonacion[provincia]:
+            plugaresDonacion[provincia].remove(pcedula)
+            return plugaresDonacion,"Lugar de donación eliminado correctamente."
+    return plugaresDonacion,"El donador no tiene lugar de donación registrado."
+
 def main():
     tiposDeSangre=("A+","A-","B+","B-","AB+","AB-","O+","O-")
     lugaresDeDonacion={"San José":[], "Alajuela":[], "Cartago":[], "Heredia":[], "Guanacaste":[],
@@ -458,9 +475,16 @@ def main():
             lugaresDeDonacion,mensaje=insertarLugarDonacion(lugaresDeDonacion, donadores, cedula, provincia)
             print(mensaje)
         elif opcion=="6":
-            print("Modificar lugar de donación pendiente.")
+            print("\n===== MODIFICAR LUGAR DE DONACIÓN =====\n")
+            cedula=input("Ingrese la cédula del donador: ")
+            nuevaProvincia=input("Ingrese la nueva provincia: ").title()
+            lugaresDeDonacion,mensaje=modificarLugarDonacion(lugaresDeDonacion,cedula,nuevaProvincia)
+            print(mensaje)
         elif opcion=="7":
-            print("Eliminar lugar de donación pendiente.")
+            print("\n===== ELIMINAR LUGAR DE DONACIÓN =====\n")
+            cedula=input("Ingrese la cédula del donador: ")
+            lugaresDeDonacion,mensaje=eliminarLugarDonacion(lugaresDeDonacion,cedula)
+            print(mensaje)
         elif opcion=="8":
             print("\n===== REPORTES =====\n")
             print("1. Cantidad de donadores por tipo de sangre")
