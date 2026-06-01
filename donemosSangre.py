@@ -274,6 +274,88 @@ def generarReporteProvincia(
     except:
         return "Reporte no creado."
 
+def reporteSangreProvincia(
+    matrizBase,
+    tipoSangreStr,
+    nombreProv,
+    lugaresProv,
+    tuplaSangre
+):
+    indSangre = 0
+    totSangre = len(tuplaSangre)
+    sangreBuscada = -1
+    while indSangre < totSangre:
+        if tuplaSangre[indSangre] == tipoSangreStr:
+            sangreBuscada = indSangre
+        indSangre = indSangre + 1
+    filtrados = []
+    ind = 0
+    totBase = len(matrizBase)
+    while ind < totBase:
+        fila = matrizBase[ind]
+        activo = fila[8]
+        sangreAct = fila[2]
+        lugar = fila[9] 
+        if activo == True:
+            if sangreAct == sangreBuscada:
+                indLugar = 0
+                totLug = len(lugaresProv)
+                esDeProv = False
+                while indLugar < totLug:
+                    lugarRev = lugaresProv[indLugar]
+                    if lugarRev == lugar:
+                        esDeProv = True
+                        indLugar = totLug
+                    else:
+                        indLugar = indLugar + 1
+                        
+                if esDeProv == True:
+                    filtrados = filtrados + [fila]    
+        ind = ind + 1
+    try:
+        fechaActual = str(datetime.datetime.now())
+        html = "<!DOCTYPE html>\n"
+        html = html + "<html>\n<head>\n"
+        html = html + "<title>Emergencia " + tipoSangreStr + "</title>\n"
+        html = html + "</head>\n<body>\n"
+        html = html + "<h2>Reporte " + tipoSangreStr + " en " + nombreProv + "</h2>\n"
+        html = html + "<p>Fecha: " + fechaActual + "</p>\n"
+        html = html + "<table border='1'>\n"
+        html = html + "<tr>"
+        html = html + "<th>Cedula</th>"
+        html = html + "<th>Nombre</th>"
+        html = html + "<th>Nac.</th>"
+        html = html + "<th>Tel</th>"
+        html = html + "<th>Correo</th>"
+        html = html + "</tr>\n"
+        indH = 0
+        totFiltrados = len(filtrados)
+        while indH < totFiltrados:
+            f = filtrados[indH]
+            ced = str(f[1])
+            nom = f[0][0] + " " + f[0][1] + " " + f[0][2]
+            nac = str(f[4])
+            tel = str(f[7])
+            cor = str(f[6])
+            html = html + "<tr>"
+            html = html + "<td>" + ced + "</td>"
+            html = html + "<td>" + nom + "</td>"
+            html = html + "<td>" + nac + "</td>"
+            html = html + "<td>" + tel + "</td>"
+            html = html + "<td>" + cor + "</td>"
+            html = html + "</tr>\n"
+            indH = indH + 1
+        html = html + "</table>\n"
+        html = html + "</body>\n</html>"
+        nomArch = "Emergencia_" + nombreProv + ".html"     
+        archivo = open(nomArch, "w", encoding="utf-8")
+        archivo.write(html)
+        archivo.close()
+        return "Reporte creado satisfactoriamente"
+               
+    except:
+        return "Reporte no creado."
+
 def mostrarMenu():
     print("\n===== DONEMOS SANGRE =====")
     print("1. Insertar donante")
