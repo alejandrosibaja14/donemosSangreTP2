@@ -356,6 +356,139 @@ def reporteSangreProvincia(
     except:
         return "Reporte no creado."
 
+def reporteMujeresONegativo(matrizBase, tuplaSangre):
+    # 1. Identificar la posicion exacta de "O-" en la tupla
+    indSangre = 0
+    totSangre = len(tuplaSangre)
+    sangreONeg = -1
+    
+    while indSangre < totSangre:
+        if tuplaSangre[indSangre] == "O-":
+            sangreONeg = indSangre
+        indSangre = indSangre + 1
+
+    # Preparar datos de fecha para calcular la edad
+    fechaHoy = datetime.datetime.now()
+    anioActual = fechaHoy.year
+
+    # 2. Filtrar mujeres (False), activas (True), O- y edad < 45
+    filtradas = []
+    ind = 0
+    totBase = len(matrizBase)
+    
+    while ind < totBase:
+        fila = matrizBase[ind]
+        
+        esActivo = fila[8]
+        sexo = fila[3] 
+        tipoSangre = fila[2]
+        
+        if esActivo == True:
+            if sexo == False:
+                if tipoSangre == sangreONeg:
+                    # Extraer el año de la posicion 4 (Fecha Nacimiento)
+                    fechaNac = str(fila[4])
+                    partes = fechaNac.split("/")
+                    
+                    if len(partes) != 3:
+                        partes = fechaNac.split("-")
+                        
+                    # El año esta en la posicion 2 de las partes separadas
+                    anioNacimiento = int(partes[2])
+                    edad = anioActual - anioNacimiento
+                    
+                    if edad < 45:
+                        filtradas = filtradas + [fila]
+                        
+        ind = ind + 1
+        
+    # 3. Ordenar por edad usando Metodo Burbuja (de menor a mayor)
+    totFiltradas = len(filtradas)
+    indI = 0
+    
+    while indI < (totFiltradas - 1):
+        indJ = 0
+        limite = totFiltradas - indI - 1
+        
+        while indJ < limite:
+            donadora1 = filtradas[indJ]
+            donadora2 = filtradas[indJ + 1]
+            
+            # Calcular edad 1 para comparar
+            fNac1 = str(donadora1[4])
+            p1 = fNac1.split("/")
+            if len(p1) != 3:
+                p1 = fNac1.split("-")
+            edad1 = anioActual - int(p1[2])
+            
+            # Calcular edad 2 para comparar
+            fNac2 = str(donadora2[4])
+            p2 = fNac2.split("/")
+            if len(p2) != 3:
+                p2 = fNac2.split("-")
+            edad2 = anioActual - int(p2[2])
+            
+            if edad1 > edad2:
+                # Intercambio
+                temp = filtradas[indJ]
+                filtradas[indJ] = filtradas[indJ + 1]
+                filtradas[indJ + 1] = temp
+                
+            indJ = indJ + 1
+        indI = indI + 1
+        
+    # 4. Crear el archivo HTML5
+    try:
+        fechaHoraStr = str(datetime.datetime.now())
+        
+        html = "<!DOCTYPE html>\n"
+        html = html + "<html>\n<head>\n"
+        html = html + "<title>Mujeres Donantes O-</title>\n"
+        html = html + "</head>\n<body>\n"
+        
+        html = html + "<h2>Reporte: Mujeres Donantes O- (Menores a 45)</h2>\n"
+        html = html + "<p>Fecha y hora del sistema: " + fechaHoraStr + "</p>\n"
+        html = html + "<table border='1'>\n"
+        html = html + "<tr>"
+        html = html + "<th>Cedula</th>"
+        html = html + "<th>Nombre Completo</th>"
+        html = html + "<th>Fecha de nacimiento</th>"
+        html = html + "<th>Telefono</th>"
+        html = html + "<th>Correo</th>"
+        html = html + "</tr>\n"
+        
+        indH = 0
+        while indH < totFiltradas:
+            f = filtradas[indH]
+            
+            ced = str(f[1])
+            nom = f[0][0] + " " + f[0][1] + " " + f[0][2]
+            nac = str(f[4])
+            tel = str(f[7])
+            cor = str(f[6])
+            
+            html = html + "<tr>"
+            html = html + "<td>" + ced + "</td>"
+            html = html + "<td>" + nom + "</td>"
+            html = html + "<td>" + nac + "</td>"
+            html = html + "<td>" + tel + "</td>"
+            html = html + "<td>" + cor + "</td>"
+            html = html + "</tr>\n"
+            
+            indH = indH + 1
+            
+        html = html + "</table>\n"
+        html = html + "</body>\n</html>"
+        
+        archivo = open("Reporte_Mujeres_O_Negativo.html", "w", encoding="utf-8")
+        archivo.write(html)
+        archivo.close()
+        
+        return "Reporte creado satisfactoriamente"
+        
+    except:
+        return "Reporte no creado."
+    
 def mostrarMenu():
     print("\n===== DONEMOS SANGRE =====")
     print("1. Insertar donante")
