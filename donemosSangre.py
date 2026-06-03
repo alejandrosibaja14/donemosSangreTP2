@@ -4,6 +4,7 @@
 #Versión de python: 3.14
 #Definición de funciones
 import re
+import datatime
 def cargarBaseDatos(rutaArchivo):
     matrizBaseDatos= []
     archivo= open(rutaArchivo, "r")
