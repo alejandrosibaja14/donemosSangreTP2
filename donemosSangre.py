@@ -472,6 +472,121 @@ def reporteMujeresONegativo(matrizBase, tuplaSangre):
     except:
         return "Reporte no creado."
 
+def reporteDeQuienRecibe(
+    matrizBase,
+    tipoSangreStr,
+    tuplaSangre,
+    diccionarioProvincias
+):
+    compatiblesStr = []
+    if tipoSangreStr == "O+":
+        compatiblesStr = ["O+", "O-"]
+    elif tipoSangreStr == "O-":
+        compatiblesStr = ["O-"]
+    elif tipoSangreStr == "A+":
+        compatiblesStr = ["A+", "A-", "O+", "O-"]
+    elif tipoSangreStr == "A-":
+        compatiblesStr = ["A-", "O-"]
+    elif tipoSangreStr == "B+":
+        compatiblesStr = ["B+", "B-", "O+", "O-"]
+    elif tipoSangreStr == "B-":
+        compatiblesStr = ["B-", "O-"]
+    elif tipoSangreStr == "AB+":
+        compatiblesStr = [
+            "O+", "O-", "A+", "A-", 
+            "B+", "B-", "AB+", "AB-"
+        ]
+    elif tipoSangreStr == "AB-":
+        compatiblesStr = ["AB-", "A-", "B-", "O-"]
+    indicesCompatibles = []
+    indComp = 0
+    totComp = len(compatiblesStr)
+    while indComp < totComp:
+        sangreBuscar = compatiblesStr[indComp]
+        indTup = 0
+        totTup = len(tuplaSangre)
+        while indTup < totTup:
+            if tuplaSangre[indTup] == sangreBuscar:
+                indicesCompatibles = indicesCompatibles + [indTup]
+            indTup = indTup + 1
+        indComp = indComp + 1
+    try:
+        fechaActual = str(datetime.datetime.now())
+        html = "<!DOCTYPE html>\n"
+        html = html + "<html>\n<head>\n"
+        html = html + "<title>Receptores para " + tipoSangreStr + "</title>\n"
+        html = html + "</head>\n<body>\n"
+        html = html + "<h2>De quien puede recibir: " + tipoSangreStr + "</h2>\n"
+        html = html + "<p>Fecha: " + fechaActual + "</p>\n"
+        provinciaActual = 7
+        while provinciaActual >= 1:
+            hospitalesProvincia = diccionarioProvincias[provinciaActual]
+            donadoresEnProvincia = []
+            indBase = 0
+            totBase = len(matrizBase)
+            while indBase < totBase:
+                fila = matrizBase[indBase]
+                esActivo = fila[8]
+                tipoSangreFila = fila[2]
+                lugarDonacion = fila[9]
+                if esActivo == True:
+                    esCompatible = False
+                    indC = 0
+                    totC = len(indicesCompatibles)
+                    while indC < totC:
+                        if indicesCompatibles[indC] == tipoSangreFila:
+                            esCompatible = True
+                        indC = indC + 1
+                    if esCompatible == True:
+                        esDeProvincia = False
+                        indH = 0
+                        totH = len(hospitalesProvincia)
+                        while indH < totH:
+                            if hospitalesProvincia[indH] == lugarDonacion:
+                                esDeProvincia = True
+                            indH = indH + 1
+                        if esDeProvincia == True:
+                            donadoresEnProvincia = donadoresEnProvincia + [fila]
+                indBase = indBase + 1
+            if len(donadoresEnProvincia) > 0:
+                html = html + "<h3>Provincia Codigo: " + str(provinciaActual) + "</h3>\n"
+                html = html + "<table border='1'>\n"
+                html = html + "<tr>"
+                html = html + "<th>Cedula</th>"
+                html = html + "<th>Nombre Completo</th>"
+                html = html + "<th>Nacimiento</th>"
+                html = html + "<th>Telefono</th>"
+                html = html + "<th>Correo</th>"
+                html = html + "</tr>\n"
+                indD = 0
+                totD = len(donadoresEnProvincia)
+                while indD < totD:
+                    f = donadoresEnProvincia[indD]
+                    ced = str(f[1])
+                    nom = f[0][0] + " " + f[0][1] + " " + f[0][2]
+                    nac = str(f[4])
+                    tel = str(f[7])
+                    cor = str(f[6])
+                    html = html + "<tr>"
+                    html = html + "<td>" + ced + "</td>"
+                    html = html + "<td>" + nom + "</td>"
+                    html = html + "<td>" + nac + "</td>"
+                    html = html + "<td>" + tel + "</td>"
+                    html = html + "<td>" + cor + "</td>"
+                    html = html + "</tr>\n"
+                    indD = indD + 1
+                html = html + "</table>\n"
+            provinciaActual = provinciaActual - 1
+        html = html + "</body>\n</html>"
+        nombreSangreLimpio = tipoSangreStr.replace("+", "Positivo").replace("-", "Negativo")
+        nomArch = "Reporte_Receptores_" + nombreSangreLimpio + ".html"
+        archivo = open(nomArch, "w", encoding="utf-8")
+        archivo.write(html)
+        archivo.close()
+        return "Reporte creado satisfactoriamente"
+    except:
+        return "Reporte no creado."
+
 def validarCedula(pcedula):
     """
     Funcionamiento: Valida la cédula con formato #-####-#### y primer dígito diferente de 0.
