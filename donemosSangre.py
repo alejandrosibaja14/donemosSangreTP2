@@ -4,6 +4,29 @@
 #Versión de python: 3.14
 #Definición de funciones
 import re
+import datetime
+tiposDeSangre=(
+    "O+",
+    "O-",
+    "A+",
+    "A-",
+    "B+",
+    "B-",
+    "AB+",
+    "AB-"
+)
+
+justificaciones=(
+    "No aplica",
+    "Enfermedades infecciosas o crónicas",
+    "Conductas de riesgo",
+    "Factores de salud física",
+    "Procedimientos médicos recientes",
+    "Uso de medicamentos",
+    "Estilo de vida o viajes recientes",
+    "Situaciones específicas"
+)
+
 def cargarBaseDatos(rutaArchivo):
     matrizBaseDatos= []
     archivo= open(rutaArchivo, "r")
@@ -120,8 +143,6 @@ def actualizarDatos(
         mensaje, 
         exito
     ]
-
-import datetime
 
 def generarReporteProvincia(
     matrizBase,
@@ -357,95 +378,65 @@ def reporteSangreProvincia(
         return "Reporte no creado."
 
 def reporteMujeresONegativo(matrizBase, tuplaSangre):
-    # 1. Identificar la posicion exacta de "O-" en la tupla
     indSangre = 0
     totSangre = len(tuplaSangre)
     sangreONeg = -1
-    
     while indSangre < totSangre:
         if tuplaSangre[indSangre] == "O-":
             sangreONeg = indSangre
         indSangre = indSangre + 1
-
-    # Preparar datos de fecha para calcular la edad
     fechaHoy = datetime.datetime.now()
     anioActual = fechaHoy.year
-
-    # 2. Filtrar mujeres (False), activas (True), O- y edad < 45
     filtradas = []
     ind = 0
     totBase = len(matrizBase)
-    
     while ind < totBase:
         fila = matrizBase[ind]
-        
         esActivo = fila[8]
         sexo = fila[3] 
         tipoSangre = fila[2]
-        
         if esActivo == True:
             if sexo == False:
                 if tipoSangre == sangreONeg:
-                    # Extraer el año de la posicion 4 (Fecha Nacimiento)
                     fechaNac = str(fila[4])
                     partes = fechaNac.split("/")
-                    
                     if len(partes) != 3:
                         partes = fechaNac.split("-")
-                        
-                    # El año esta en la posicion 2 de las partes separadas
                     anioNacimiento = int(partes[2])
                     edad = anioActual - anioNacimiento
-                    
                     if edad < 45:
                         filtradas = filtradas + [fila]
-                        
         ind = ind + 1
-        
-    # 3. Ordenar por edad usando Metodo Burbuja (de menor a mayor)
     totFiltradas = len(filtradas)
     indI = 0
-    
     while indI < (totFiltradas - 1):
         indJ = 0
         limite = totFiltradas - indI - 1
-        
         while indJ < limite:
             donadora1 = filtradas[indJ]
             donadora2 = filtradas[indJ + 1]
-            
-            # Calcular edad 1 para comparar
             fNac1 = str(donadora1[4])
             p1 = fNac1.split("/")
             if len(p1) != 3:
                 p1 = fNac1.split("-")
             edad1 = anioActual - int(p1[2])
-            
-            # Calcular edad 2 para comparar
             fNac2 = str(donadora2[4])
             p2 = fNac2.split("/")
             if len(p2) != 3:
                 p2 = fNac2.split("-")
             edad2 = anioActual - int(p2[2])
-            
             if edad1 > edad2:
-                # Intercambio
                 temp = filtradas[indJ]
                 filtradas[indJ] = filtradas[indJ + 1]
                 filtradas[indJ + 1] = temp
-                
             indJ = indJ + 1
         indI = indI + 1
-        
-    # 4. Crear el archivo HTML5
     try:
         fechaHoraStr = str(datetime.datetime.now())
-        
         html = "<!DOCTYPE html>\n"
         html = html + "<html>\n<head>\n"
         html = html + "<title>Mujeres Donantes O-</title>\n"
         html = html + "</head>\n<body>\n"
-        
         html = html + "<h2>Reporte: Mujeres Donantes O- (Menores a 45)</h2>\n"
         html = html + "<p>Fecha y hora del sistema: " + fechaHoraStr + "</p>\n"
         html = html + "<table border='1'>\n"
@@ -456,17 +447,14 @@ def reporteMujeresONegativo(matrizBase, tuplaSangre):
         html = html + "<th>Telefono</th>"
         html = html + "<th>Correo</th>"
         html = html + "</tr>\n"
-        
         indH = 0
         while indH < totFiltradas:
             f = filtradas[indH]
-            
             ced = str(f[1])
             nom = f[0][0] + " " + f[0][1] + " " + f[0][2]
             nac = str(f[4])
             tel = str(f[7])
             cor = str(f[6])
-            
             html = html + "<tr>"
             html = html + "<td>" + ced + "</td>"
             html = html + "<td>" + nom + "</td>"
@@ -474,256 +462,488 @@ def reporteMujeresONegativo(matrizBase, tuplaSangre):
             html = html + "<td>" + tel + "</td>"
             html = html + "<td>" + cor + "</td>"
             html = html + "</tr>\n"
-            
             indH = indH + 1
-            
         html = html + "</table>\n"
         html = html + "</body>\n</html>"
-        
         archivo = open("Reporte_Mujeres_O_Negativo.html", "w", encoding="utf-8")
         archivo.write(html)
         archivo.close()
-        
         return "Reporte creado satisfactoriamente"
-        
     except:
         return "Reporte no creado."
-    
-def mostrarMenu():
-    print("\n===== DONEMOS SANGRE =====")
-    print("1. Insertar donante")
-    print("2. Eliminar donante")
-    print("3. Insertar lugar de donación")
-    print("4. Reportes")
-    print("5. Salir")
 
 def validarCedula(pcedula):
     """
-    Funcionamiento: Valida que la cédula tenga el formato correcto.
-    Entradas: pcedula: cédula a validar.
-    Salidas: True si es válida, False si no lo es.
+    Funcionamiento: Valida la cédula con formato #-####-#### y primer dígito diferente de 0.
+    Entradas: pcedula: cédula ingresada.
+    Salidas: True si cumple, False si no cumple.
     """
-    patron=r"^\d-\d{4}-\d{4}$"
+    patron=r"^[1-9]-\d{4}-\d{4}$"
     if re.match(patron,pcedula):
         return True
-    else: return False
+    return False
 
-def validarEdad(pedad):
+def validarFechaNacimiento(pfecha):
     """
-    Funcionamiento: Verifica que la edad sea numérica y mayor o igual a 18.
-    Entradas: pedad: edad ingresada.
-    Salidas: True si es válida, False si no lo es.
+    Funcionamiento: Valida que la fecha tenga formato DD/MM/AAAA.
+    Entradas: pfecha: fecha ingresada.
+    Salidas: True si cumple el formato, False si no.
     """
-    if not pedad.isdigit():
+    patron=r"^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$"
+    if re.match(patron,pfecha):
+        return True
+    return False
+
+def validarCorreo(pcorreo):
+    """
+    Funcionamiento: Valida que el correo tenga uno de los dominios permitidos.
+    Entradas: pcorreo: correo ingresado.
+    Salidas: True si el correo es válido, False si no.
+    """
+    patron=r"^[a-zA-Z0-9]+@(costarricense\.cr|racsa\.go\.cr|ccss\.sa\.cr|gmail\.com)$"
+    if re.match(patron,pcorreo):
+        return True
+    return False
+
+def validarTelefono(ptelefono):
+    """
+    Funcionamiento: Valida teléfono con formato ####-#### y primer dígito diferente de 0, 1, 3 y 5.
+    Entradas: ptelefono: teléfono ingresado.
+    Salidas: True si cumple, False si no.
+    """
+    patron=r"^[246789]\d{3}-\d{4}$"
+    if re.match(patron,ptelefono):
+        return True
+    return False
+
+def validarPeso(ppeso):
+    """
+    Funcionamiento: Valida que el peso sea numérico, mayor a 50 y menor a 120.
+    Entradas: ppeso: peso ingresado.
+    Salidas: True si es válido, False si no.
+    """
+    try:
+        peso=float(ppeso)
+        if peso>50 and peso<120:
+            return True
         return False
-    edad=int(pedad)
-    if edad<18:
+    except:
         return False
-    else: return True
 
 def validarTipoSangre(ptipoSangre,ptiposDeSangre):
     """
-    Funcionamiento: Verifica que el tipo de sangre exista en la tupla .
+    Funcionamiento: Verifica que el tipo de sangre exista en la tupla global.
     Entradas: ptipoSangre: tipo de sangre ingresado.
-            ptiposDeSangre: tupla de tipos válidos.
-    Salidas: True si es válido, False si no lo es.
+            ptiposDeSangre: tupla de tipos de sangre.
+    Salidas: True si existe, False si no existe.
     """
     if ptipoSangre in ptiposDeSangre:
         return True
-    else: return False
+    return False
 
-def validarDonadorExistente(pcedula,pmatrizDonadores):
+def obtenerIndiceTipoSangre(ptipoSangre,ptiposDeSangre):
     """
-    Funcionamiento: Verifica si una cédula ya se encuentra registrada.
-    Entradas: pcedula: cédula a buscar.
-            pmatrizDonadores: matriz de donadores.
-    Salidas: True si ya existe, False si no existe.
+    Funcionamiento: Obtiene la posición del tipo de sangre dentro de la tupla.
+    Entradas: ptipoSangre: tipo de sangre.
+            ptiposDeSangre: tupla de tipos de sangre.
+    Salidas: Índice del tipo de sangre o -1 si no existe.
     """
-    for donador in pmatrizDonadores:
-        if donador[0]==pcedula:
-            return True
-    else: return False
+    indice=0
+    while indice<len(ptiposDeSangre):
+        if ptiposDeSangre[indice]==ptipoSangre:
+            return indice
+        indice+=1
+    return -1
 
-def insertarDonante(pdonadores, pcedula, pnombre, pedad, psexo, ptipoSangre, pprovincia, ptiposDeSangre, plugaresDeDonacion):
+def validarCamposRequeridos(plistaCampos):
     """
-    Funcionamiento: Valida y registra un nuevo donador en la matriz de donadores.
-    Entradas: pdonadores: matriz de donadores.
+    Funcionamiento: Verifica que todos los campos obligatorios tengan información.
+    Entradas: plistaCampos: lista con los valores ingresados.
+    Salidas: True si todos tienen datos, False si alguno está vacío.
+    """
+    for campo in plistaCampos:
+        if str(campo).strip()=="":
+            return False
+    return True
+
+def eliminarDonante(pbaseDatos,pcedula,pjustificacion,pconfirmacion):
+    """
+    Funcionamiento: Cambia el estado de un donador a inactivo y guarda la justificación.
+    Entradas: pbaseDatos: matriz de donadores.
             pcedula: cédula del donador.
-            pnombre: nombre completo del donador.
-            pedad: edad del donador.
-            psexo: sexo del donador.
-            ptipoSangre: tipo de sangre del donador.
-            pprovincia: provincia del donador.
-            ptiposDeSangre: tupla con tipos de sangre válidos.
-    Salidas: Matriz actualizada y mensaje de retroalimentación.
+            pjustificacion: número de justificación de eliminación.
+            pconfirmacion: respuesta de confirmación del usuario.
+    Salidas: Base de datos actualizada y mensaje de retroalimentación.
     """
     if not validarCedula(pcedula):
-        return pdonadores, "Cédula inválida. Vuelva a intentarlo con un número de cédula válido."
-    if validarDonadorExistente(pcedula, pdonadores):
-        return pdonadores, "El donador ingresado ya existe."
-    if not validarEdad(pedad):
-        return pdonadores, "La edad ingresada no es válida. Debe ingresar una edad mayor o igual a 18 años."
-    if psexo!="M" and psexo!="F":
-        return pdonadores, "Sexo inválido. Debe ingresar M en caso de masculino y F si es femenino."
-    if not validarTipoSangre(ptipoSangre, ptiposDeSangre):
-        return pdonadores, "Tipo de sangre inválido. Vuelva a intentarlo."
-    if not validarProvincia(pprovincia, plugaresDeDonacion):
-        return pdonadores, "Provincia inválida. Debe ingresar una provincia de Costa Rica."
+        return pbaseDatos,"Cédula inválida. Vuelva a intentarlo."
+    if not str(pjustificacion).isdigit():
+        return pbaseDatos,"La justificación debe ser un número entre 1 y 7."
+    justificacion=int(pjustificacion)
+    if justificacion<1 or justificacion>7:
+        return pbaseDatos,"La justificación debe ser un número entre 1 y 7."
+    cedulaEntera=int(pcedula.replace("-",""))
+    for donador in pbaseDatos:
+        if donador[1]==cedulaEntera:
+            if donador[8]==0:
+                return pbaseDatos,"El donador ya se encuentra inactivo."
+            if pconfirmacion.upper()!="S":
+                return pbaseDatos,"Donador NO eliminado."
+            donador[8]=0
+            donador[9]=justificacion
+            return pbaseDatos,"Donador eliminado satisfactoriamente."
+    return pbaseDatos,"La persona con el número de cédula: "+pcedula+" no está registrado en la base de datos del Banco de Sangre aún."
+
+def insertarDonador(pbaseDatos,pnombre,papellido1,papellido2,pcedula,ptipoSangre,psexo,pfechaNacimiento,ppeso,pcorreo,ptelefono,ptiposDeSangre):
+    """
+    Funcionamiento: Valida y registra un nuevo donador con la estructura de matriz solicitada.
+    Entradas: Datos del donador y base de datos.
+    Salidas: Base de datos actualizada, mensaje y retroalimentación adicional.
+    """
+    retroalimentacion=[]
+    campos=[pnombre,papellido1,papellido2,pcedula,ptipoSangre,psexo,pfechaNacimiento,ppeso,pcorreo,ptelefono]
+    if not validarCamposRequeridos(campos):
+        return pbaseDatos,"Todos los datos son requeridos.",retroalimentacion
+    if not validarCedula(pcedula):
+        return pbaseDatos,"Cédula inválida. Use el formato #-####-####.",retroalimentacion
+    cedulaEntera=int(pcedula.replace("-",""))
+    if buscarDonadorPorCedula(pbaseDatos,cedulaEntera)!=[]:
+        return pbaseDatos,"La persona con esa cédula ya está registrada.",retroalimentacion
+    if not validarFechaNacimiento(pfechaNacimiento):
+        return pbaseDatos,"Fecha inválida. Use el formato DD/MM/AAAA.",retroalimentacion
+    if not validarTipoSangre(ptipoSangre,ptiposDeSangre):
+        return pbaseDatos,"Tipo de sangre inválido.",retroalimentacion
+    if not validarPeso(ppeso):
+        return pbaseDatos,"Peso inválido. Debe ser mayor a 50 y menor a 120.",retroalimentacion
+    if not validarCorreo(pcorreo):
+        return pbaseDatos,"Correo inválido. Use un dominio permitido.",retroalimentacion
+    if not validarTelefono(ptelefono):
+        return pbaseDatos,"Teléfono inválido. Use formato ####-####.",retroalimentacion
+    tipoIndice=obtenerIndiceTipoSangre(ptipoSangre,ptiposDeSangre)
+    if tipoIndice==-1:
+        return pbaseDatos,"Tipo de sangre inválido.",retroalimentacion
+    if psexo!="Masculino" and psexo!="Femenino":
+        return pbaseDatos,"Sexo inválido.",retroalimentacion
+    sexo=True
+    if psexo=="Femenino":
+        sexo=False
+    fechaPartes=pfechaNacimiento.split("/")
+    fechaTupla=(fechaPartes[0],fechaPartes[1],fechaPartes[2])
+    telefonoLimpio=ptelefono
     donador=[
-        pcedula,
-        " ".join(pnombre.split()).title(),
-        int(pedad),
-        psexo,
-        ptipoSangre,
-        pprovincia.title(),
-        True
+        [pnombre.strip().title(),papellido1.strip().title(),papellido2.strip().title()],
+        cedulaEntera,
+        tipoIndice,
+        sexo,
+        fechaTupla,
+        float(ppeso),
+        pcorreo,
+        telefonoLimpio,
+        1,
+        0
     ]
-    pdonadores.append(donador)
-    return pdonadores, "El donador fue registrado correctamente."
+    pbaseDatos.append(donador)
+    edad=calcularEdad(fechaTupla)
+    retroalimentacion.append("Donador registrado correctamente.")
+    retroalimentacion.append("Edad calculada: "+str(edad)+" años.")
+    if edad>=18:
+        retroalimentacion.append("Dado su fecha de nacimiento usted ya puede ser donador.")
+    else:
+        retroalimentacion.append("Dado su fecha de nacimiento usted aún no puede ser donador.")
+    retroalimentacion.append("Peso registrado: "+str(ppeso)+" kg.")
+    if ptipoSangre=="A+":
+        retroalimentacion.append("A los donadores A+ se les recomienda donar sangre entera y plaquetas.")
+    elif ptipoSangre=="A-":
+        retroalimentacion.append("A los donadores A- se les recomienda donar sangre entera y glóbulos rojos dobles.")
+    return pbaseDatos,"Registro realizado correctamente.",retroalimentacion
 
-def validarProvincia(pprovincia, plugaresDeDonacion):
+def insertarLugarDonacion(plugaresDonacion,pnumeroProvincia,pnuevoLugar):
     """
-    Funcionamiento: Verifica que la provincia ingresada exista dentro del diccionario de lugares de donación.
-    Entradas: pprovincia: provincia ingresada.
-            plugaresDeDonacion: diccionario con provincias válidas.
-    Salidas: True si la provincia existe, False si no existe.
+    Funcionamiento: Inserta un nuevo lugar de donación en una provincia específica.
+    Entradas: plugaresDonacion: diccionario de lugares de donación.
+            pnumeroProvincia: número de provincia.
+            pnuevoLugar: nombre del nuevo lugar de donación.
+    Salidas: Diccionario actualizado y mensaje de retroalimentación.
     """
-    if pprovincia.title() in plugaresDeDonacion:
-        return True
-    else: return False
-
-def eliminarDonante(pcedula, pdonadores):
-    if not validarCedula(pcedula):
-        return pdonadores, "Cédula inválida. Vuelva a intentarlo."
-    for donador in pdonadores:
-        if donador[0]==pcedula:
-            if donador[6]==False:
-                return pdonadores,"El donador ya fue eliminado anteriormente."
-            donador[6]=False
-            return pdonadores,"Donador eliminado correctamente."
-    return pdonadores,"El donador solicitado no existe."
-
-def insertarLugarDonacion(plugaresDonacion,pdonadores,pcedula,pprovincia):
-    donadorEncontrado=False
-    for donador in pdonadores:
-        if donador[0]==pcedula:
-            donadorEncontrado=True
-            if donador[6]==False:
-                return plugaresDonacion,"El donador está inactivo."
-            if pprovincia not in plugaresDonacion:
-                return plugaresDonacion,"La provincia ingresada no existe."
-            if pcedula in plugaresDonacion[pprovincia]:
-                return plugaresDonacion,"El donador ya fue agregado en esta provincia."
-            plugaresDonacion[pprovincia].append(pcedula)
-            return plugaresDonacion,"Lugar de donación agregado correctamente."
-    if not donadorEncontrado:
-        return plugaresDonacion,"El donador no existe."
-    
-def obtenerReporteGeneral(pdonadores):
-    activos=0
-    inactivos=0
-    for donador in pdonadores:
-        if donador[6]:
-            activos+=1
-        else:
-            inactivos+=1
-    return activos,inactivos
-
-def contarDatos(pdonadores,pindice,pcategorias):
-    conteo={}
-    for categoria in pcategorias:
-        conteo[categoria]=0
-    for donador in pdonadores:
-        dato=donador[pindice]
-        if dato in conteo:
-            conteo[dato]+=1
-    return conteo
-
-def modificarLugarDonacion(plugaresDonacion,pcedula,pnuevaProvincia):
-    if pnuevaProvincia not in plugaresDonacion:
+    if not str(pnumeroProvincia).isdigit():
+        return plugaresDonacion,"La provincia debe ser un número válido."
+    numeroProvincia=int(pnumeroProvincia)
+    if numeroProvincia not in plugaresDonacion:
         return plugaresDonacion,"La provincia ingresada no existe."
-    for provincia in plugaresDonacion:
-        if pcedula in plugaresDonacion[provincia]:
-            plugaresDonacion[provincia].remove(pcedula)
-            plugaresDonacion[pnuevaProvincia].append(pcedula)
-            return plugaresDonacion,"Lugar de donación modificado correctamente."
-    return plugaresDonacion,"El donador no tiene lugar de donación registrado."
+    if pnuevoLugar.strip()=="":
+        return plugaresDonacion,"Debe ingresar un lugar de donación."
+    lugarNuevo=pnuevoLugar.strip()
+    for lugar in plugaresDonacion[numeroProvincia]:
+        if lugar.lower()==lugarNuevo.lower():
+            return plugaresDonacion,"Ese lugar ya está registrado en esta provincia."
+    plugaresDonacion[numeroProvincia].append(lugarNuevo)
+    return plugaresDonacion,"Lugar de donación insertado correctamente."
 
-def eliminarLugarDonacion(plugaresDonacion,pcedula):
-    for provincia in plugaresDonacion:
-        if pcedula in plugaresDonacion[provincia]:
-            plugaresDonacion[provincia].remove(pcedula)
-            return plugaresDonacion,"Lugar de donación eliminado correctamente."
-    return plugaresDonacion,"El donador no tiene lugar de donación registrado."
+def calcularEdad(pfechaNacimiento):
+    """
+    Funcionamiento: Calcula la edad de una persona según su fecha de nacimiento.
+    Entradas: pfechaNacimiento: fecha en formato tupla o string.
+    Salidas: Edad calculada.
+    """
+    fechaActual=datetime.datetime.now() 
+    if type(pfechaNacimiento)==str:
+        partes=pfechaNacimiento.split("/")
+        dia=int(partes[0])
+        mes=int(partes[1])
+        anno=int(partes[2])
+    else:
+        dia=int(pfechaNacimiento[0])
+        mes=int(pfechaNacimiento[1])
+        anno=int(pfechaNacimiento[2])
+    edad=fechaActual.year-anno
+    if fechaActual.month<mes:
+        edad-=1
+    elif fechaActual.month==mes and fechaActual.day<dia:
+        edad-=1
+    return edad
 
-def main():
-    tiposDeSangre=("A+","A-","B+","B-","AB+","AB-","O+","O-")
-    lugaresDeDonacion={"San José":[], "Alajuela":[], "Cartago":[], "Heredia":[], "Guanacaste":[],
-    "Puntarenas":[], "Limón":[]}
-    donadores=[]
-    while True:
-        mostrarMenu()
-        opcion=input("Seleccione la opción que desee ejecutar: ")
-        if opcion=="1":
-            print("\n===== INSERTAR DONANTE =====\n")
-            cedula=input("Ingrese la cédula del donador: ")
-            nombre=input("Ingrese el nombre completo del donador: ")
-            edad=input("Ingrese la edad del donador: ")
-            sexo=input("Ingrese el sexo del donador (M/F): ").upper()
-            tipoSangre=input("Ingrese el tipo de sangre del donador: ").upper()
-            provincia=input("Ingrese la provincia del donador: ")
-            donadores, mensaje=insertarDonante(donadores, cedula, nombre, edad, sexo, tipoSangre, provincia, tiposDeSangre)
-            print(mensaje)
-        elif opcion=="2":
-            print("Modificar donante pendiente.")
-        elif opcion=="3":
-            print("\n===== ELIMINAR DONANTE =====\n")
-            cedula=input("Ingrese la cédula del donador a eliminar: ")
-            donadores,mensaje=eliminarDonante(cedula,donadores)
-            print(mensaje)
-        elif opcion=="4":
-            print("Consultar donante pendiente.")
-        elif opcion=="5":
-            print("\n===== INSERTAR LUGAR DE DONACIÓN =====\n")
-            cedula=input("Ingrese la cédula del donador: ")
-            provincia=input("Ingrese la provincia: ").title()
-            lugaresDeDonacion,mensaje=insertarLugarDonacion(lugaresDeDonacion, donadores, cedula, provincia)
-            print(mensaje)
-        elif opcion=="6":
-            print("\n===== MODIFICAR LUGAR DE DONACIÓN =====\n")
-            cedula=input("Ingrese la cédula del donador: ")
-            nuevaProvincia=input("Ingrese la nueva provincia: ").title()
-            lugaresDeDonacion,mensaje=modificarLugarDonacion(lugaresDeDonacion,cedula,nuevaProvincia)
-            print(mensaje)
-        elif opcion=="7":
-            print("\n===== ELIMINAR LUGAR DE DONACIÓN =====\n")
-            cedula=input("Ingrese la cédula del donador: ")
-            lugaresDeDonacion,mensaje=eliminarLugarDonacion(lugaresDeDonacion,cedula)
-            print(mensaje)
-        elif opcion=="8":
-            print("\n===== REPORTES =====\n")
-            print("1. Cantidad de donadores por tipo de sangre")
-            print("2. Cantidad de donadores por provincia")
-            print("3. Donadores activos e inactivos")
-            opcionReporte=input("Seleccione el reporte que desea visualizar: ")
-            if opcionReporte=="1":
-                resultado=contarDatos(donadores,4,tiposDeSangre)
-                for tipo in resultado:
-                    print(tipo+":",resultado[tipo])
-            elif opcionReporte=="2":
-                provincias=("San José","Alajuela","Cartago","Heredia","Guanacaste","Puntarenas","Limón")
-                resultado=contarDatos(donadores,5,provincias)
-                for provincia in resultado:
-                    print(provincia+":",resultado[provincia])
-            elif opcionReporte=="3":
-                activos, inactivos=obtenerReporteGeneral(donadores)
-                print("Donadores activos:",activos)
-                print("Donadores inactivos:",inactivos)
-        elif opcion=="9":
-            print("Donar sangre, es donar vida")
-            break
-        else:
-            print("Opción inválida.")
+def generarReporteRangoEdad(pbaseDatos,pedadInicial,pedadFinal):
+    """
+    Funcionamiento: Genera un reporte HTML de donadores activos dentro de un rango de edad.
+    Entradas: pbaseDatos: matriz de donadores.
+            pedadInicial: edad inicial del rango.
+            pedadFinal: edad final del rango.
+    Salidas: Mensaje indicando si el reporte fue generado.
+    """
+    if not str(pedadInicial).isdigit() or not str(pedadFinal).isdigit():
+        return "Las edades deben ser números."
+    edadInicial=int(pedadInicial)
+    edadFinal=int(pedadFinal)
+    if edadInicial<18 or edadInicial>65 or edadFinal<18 or edadFinal>65:
+        return "Las edades deben estar entre 18 y 65 años."
+    if edadInicial>edadFinal:
+        return "La edad inicial no puede ser mayor que la edad final."
+    filtrados=[]
+    for donador in pbaseDatos:
+        if donador[8]==1:
+            edad=calcularEdad(donador[4])
+            if edad>=edadInicial and edad<=edadFinal:
+                filtrados.append(donador)
+    try:
+        fechaHora=str(datetime.datetime.now())
+        html="<!DOCTYPE html>\n"
+        html+="<html>\n<head>\n"
+        html+='<meta charset="UTF-8">\n'
+        html+="<title>Reporte por rango de edad</title>\n"
+        html+="</head>\n<body>\n"
+        html+="<h1>Reporte por rango de edad</h1>\n"
+        html+="<p>Fecha y hora del sistema: "+fechaHora+"</p>\n"
+        html+="<table border='1'>\n"
+        html+="<tr><th>Cédula</th><th>Nombre completo</th><th>Fecha de nacimiento</th><th>Teléfono</th><th>Correo</th></tr>\n"
+        for donador in filtrados:
+            nombre=donador[0][0]+" "+donador[0][1]+" "+donador[0][2]
+            cedula=str(donador[1])
+            fecha=str(donador[4][0])+"/"+str(donador[4][1])+"/"+str(donador[4][2])
+            telefono=str(donador[7])
+            correo=donador[6]
+            html+="<tr>"
+            html+="<td>"+cedula+"</td>"
+            html+="<td>"+nombre+"</td>"
+            html+="<td>"+fecha+"</td>"
+            html+="<td>"+telefono+"</td>"
+            html+="<td>"+correo+"</td>"
+            html+="</tr>\n"
+        html+="</table>\n"
+        html+="</body>\n</html>"
+        archivo=open("reporte_rango_edad.html","w",encoding="utf-8")
+        archivo.write(html)
+        archivo.close()
+        return "Reporte creado satisfactoriamente."
+    except:
+        return "El reporte no fue creado. Vuelva a intentarlo."
+    
+def generarReporteListaCompleta(pbaseDatos,ptiposDeSangre):
+    """
+    Funcionamiento: Genera un reporte HTML con la lista completa de donadores.
+    Entradas: pbaseDatos: matriz de donadores.
+            ptiposDeSangre: tupla con los tipos de sangre.
+    Salidas: Mensaje indicando si el reporte fue generado.
+    """
+    try:
+        fechaHora=str(datetime.datetime.now())
+        html="<!DOCTYPE html>\n"
+        html+="<html>\n<head>\n"
+        html+='<meta charset="UTF-8">\n'
+        html+="<title>Lista completa de donadores</title>\n"
+        html+="</head>\n<body>\n"
+        html+="<h1>Lista completa de donadores</h1>\n"
+        html+="<p>Fecha y hora del sistema: "+fechaHora+"</p>\n"
+        html+="<table border='1'>\n"
+        html+="<tr>"
+        html+="<th>Cédula</th>"
+        html+="<th>Nombre completo</th>"
+        html+="<th>Tipo de sangre</th>"
+        html+="<th>Fecha de nacimiento</th>"
+        html+="<th>Peso</th>"
+        html+="<th>Sexo</th>"
+        html+="<th>Teléfono</th>"
+        html+="<th>Correo</th>"
+        html+="</tr>\n"
+        for donador in pbaseDatos:
+            nombre=donador[0][0]+" "+donador[0][1]+" "+donador[0][2]
+            cedula=str(donador[1])
+            tipoSangre=ptiposDeSangre[donador[2]]
+            fecha=str(donador[4][0])+"/"+str(donador[4][1])+"/"+str(donador[4][2])
+            peso=str(donador[5])
+            if donador[3]:
+                sexo="Masculino"
+            else:
+                sexo="Femenino"
+            telefono=str(donador[7])
+            correo=donador[6]
+            html+="<tr>"
+            html+="<td>"+cedula+"</td>"
+            html+="<td>"+nombre+"</td>"
+            html+="<td>"+tipoSangre+"</td>"
+            html+="<td>"+fecha+"</td>"
+            html+="<td>"+peso+"</td>"
+            html+="<td>"+sexo+"</td>"
+            html+="<td>"+telefono+"</td>"
+            html+="<td>"+correo+"</td>"
+            html+="</tr>\n"
+        html+="</table>\n"
+        html+="</body>\n</html>"
+        archivo=open("reporte_lista_completa.html","w",encoding="utf-8")
+        archivo.write(html)
+        archivo.close()
+        return "Reporte creado satisfactoriamente."
+    except:
+        return "Reporte no creado."
+    
+def obtenerCompatibilidadDonacion(ptipoSangre):
+    """
+    Funcionamiento: Obtiene los tipos de sangre a los que puede donar una persona.
+    Entradas: ptipoSangre: tipo de sangre del donador.
+    Salidas: Lista con los tipos de sangre compatibles.
+    """
+    compatibilidad={
+        "O-":["O-","O+","A-","A+","B-","B+","AB-","AB+"],
+        "O+":["O+","A+","B+","AB+"],
+        "A-":["A-","A+","AB-","AB+"],
+        "A+":["A+","AB+"],
+        "B-":["B-","B+","AB-","AB+"],
+        "B+":["B+","AB+"],
+        "AB-":["AB-","AB+"],
+        "AB+":["AB+"]
+    }
+    if ptipoSangre in compatibilidad:
+        return compatibilidad[ptipoSangre]
+    return []
 
+def generarReporteAQuienPuedeDonar(pbaseDatos,ptipoSangre,ptiposDeSangre):
+    """
+    Funcionamiento: Genera un reporte HTML con los donadores activos que pueden donar a un tipo de sangre indicado.
+    Entradas: pbaseDatos: matriz de donadores.
+            ptipoSangre: tipo de sangre consultado.
+            ptiposDeSangre: tupla con los tipos de sangre.
+    Salidas: Mensaje indicando si el reporte fue generado.
+    """
+    if ptipoSangre not in ptiposDeSangre:
+        return "Tipo de sangre inválido."
+    filtrados=[]
+    for donador in pbaseDatos:
+        if donador[8]==1:
+            tipoDonador=ptiposDeSangre[donador[2]]
+            compatibles=obtenerCompatibilidadDonacion(tipoDonador)
+            if ptipoSangre in compatibles:
+                filtrados.append(donador)
+    try:
+        fechaHora=str(datetime.datetime.now())
+        html="<!DOCTYPE html>\n"
+        html+="<html>\n<head>\n"
+        html+='<meta charset="UTF-8">\n'
+        html+="<title>Reporte a quién puede donar</title>\n"
+        html+="</head>\n<body>\n"
+        html+="<h1>Reporte: ¿A quién puede donar?</h1>\n"
+        html+="<p>Fecha y hora del sistema: "+fechaHora+"</p>\n"
+        html+="<p>Tipo de sangre solicitado: "+ptipoSangre+"</p>\n"
+        html+="<table border='1'>\n"
+        html+="<tr>"
+        html+="<th>Cédula</th>"
+        html+="<th>Nombre completo</th>"
+        html+="<th>Tipo de sangre</th>"
+        html+="<th>Teléfono</th>"
+        html+="<th>Correo</th>"
+        html+="</tr>\n"
+        for donador in filtrados:
+            nombre=donador[0][0]+" "+donador[0][1]+" "+donador[0][2]
+            cedula=str(donador[1])
+            tipoSangre=ptiposDeSangre[donador[2]]
+            telefono=str(donador[7])
+            correo=donador[6]
+            html+="<tr>"
+            html+="<td>"+cedula+"</td>"
+            html+="<td>"+nombre+"</td>"
+            html+="<td>"+tipoSangre+"</td>"
+            html+="<td>"+telefono+"</td>"
+            html+="<td>"+correo+"</td>"
+            html+="</tr>\n"
+        html+="</table>\n"
+        html+="</body>\n</html>"
+        archivo=open("reporte_a_quien_puede_donar.html","w",encoding="utf-8")
+        archivo.write(html)
+        archivo.close()
+        return "Reporte creado satisfactoriamente."
+    except:
+        return "Reporte no creado. Vuelva a intentarlo."
+    
+def generarReporteDonantesNoActivos(pbaseDatos,pjustificaciones,ptiposDeSangre):
+    """
+    Funcionamiento: Genera un reporte HTML con los donadores que se encuentran inactivos.
+    Entradas: pbaseDatos: matriz de donadores.
+            pjustificaciones: tupla con las justificaciones de inactividad.
+            ptiposDeSangre: tupla con los tipos de sangre.
+    Salidas: Mensaje indicando si el reporte fue generado.
+    """
+    try:
+        fechaHora=str(datetime.datetime.now())
+        html="<!DOCTYPE html>\n"
+        html+="<html>\n<head>\n"
+        html+='<meta charset="UTF-8">\n'
+        html+="<title>Donantes no activos</title>\n"
+        html+="</head>\n<body>\n"
+        html+="<h1>Reporte de donantes no activos</h1>\n"
+        html+="<p>Fecha y hora del sistema: "+fechaHora+"</p>\n"
+        html+="<table border='1'>\n"
+        html+="<tr>"
+        html+="<th>Cédula</th>"
+        html+="<th>Nombre completo</th>"
+        html+="<th>Tipo de sangre</th>"
+        html+="<th>Teléfono</th>"
+        html+="<th>Correo</th>"
+        html+="<th>Justificación</th>"
+        html+="</tr>\n"
+        for donador in pbaseDatos:
+            if donador[8]==0:
+                nombre=donador[0][0]+" "+donador[0][1]+" "+donador[0][2]
+                cedula=str(donador[1])
+                tipoSangre=ptiposDeSangre[donador[2]]
+                telefono=str(donador[7])
+                correo=donador[6]
+                numeroJustificacion=donador[9]
+                if numeroJustificacion>=0 and numeroJustificacion<len(pjustificaciones):
+                    justificacion=pjustificaciones[numeroJustificacion]
+                else:
+                    justificacion="Justificación no registrada"
+                html+="<tr>"
+                html+="<td>"+cedula+"</td>"
+                html+="<td>"+nombre+"</td>"
+                html+="<td>"+tipoSangre+"</td>"
+                html+="<td>"+telefono+"</td>"
+                html+="<td>"+correo+"</td>"
+                html+="<td>"+justificacion+"</td>"
+                html+="</tr>\n"
+        html+="</table>\n"
+        html+="</body>\n</html>"
+        archivo=open("reporte_donantes_no_activos.html","w",encoding="utf-8")
+        archivo.write(html)
+        archivo.close()
+        return "Reporte creado satisfactoriamente."
+    except:
+        return "Reporte no creado. Vuelva a intentarlo."
 #Inicio del programa principal
-main()
