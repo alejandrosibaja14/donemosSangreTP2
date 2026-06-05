@@ -1460,11 +1460,11 @@ def abrirVentanaReportes(baseDatos,ventanaPrincipal):
     def repEstadistico():
         lugares = cargarLugaresDonacion()
         mostrarMensaje(reporteLugaresEstadistico(baseDatos, lugares))
-    ctk.CTkButton(ventana, text="Donantes por provincia (E1)", width=280, fg_color="green", command=repProvincia).pack(pady=4)
-    ctk.CTkButton(ventana, text="Sangre por provincia (E1)", width=280, fg_color="green", command=repSangreProv).pack(pady=4)
-    ctk.CTkButton(ventana, text="Mujeres O- (E1)", width=280, fg_color="green", command=repMujeres).pack(pady=4)
-    ctk.CTkButton(ventana, text="¿De quién recibe? (E1)", width=280, fg_color="green", command=repRecibe).pack(pady=4)
-    ctk.CTkButton(ventana, text="Estadístico de lugares (E1)", width=280, fg_color="green", command=repEstadistico).pack(pady=15)
+    ctk.CTkButton(ventana, text="Donantes por provincia", width=280, fg_color="green", command=repProvincia).pack(pady=4)
+    ctk.CTkButton(ventana, text="Sangre por provincia", width=280, fg_color="green", command=repSangreProv).pack(pady=4)
+    ctk.CTkButton(ventana, text="Mujeres O-", width=280, fg_color="green", command=repMujeres).pack(pady=4)
+    ctk.CTkButton(ventana, text="¿De quién recibe?", width=280, fg_color="green", command=repRecibe).pack(pady=4)
+    ctk.CTkButton(ventana, text="Estadístico de lugares", width=280, fg_color="green", command=repEstadistico).pack(pady=15)
     botonRegresar=ctk.CTkButton(
         ventana,
         text="Regresar",
