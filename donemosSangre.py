@@ -589,6 +589,61 @@ def reporteDeQuienRecibe(
     except:
         return "Reporte no creado."
 
+def reporteLugaresEstadistico(matrizBase, diccionarioProvincias):
+    try:
+        html = "<!DOCTYPE html>\n"
+        html = html + "<html>\n<head>\n"
+        html = html + "<title>Reporte Estadistico Provincias</title>\n"
+        html = html + "</head>\n<body>\n"
+        html = html + "<h2>Estadistica de Donadores por Provincia</h2>\n"
+        
+        html = html + "<table border='1'>\n"
+        html = html + "<tr>"
+        html = html + "<th>Provincia</th>"
+        html = html + "<th>Cantidad de Donadores</th>"
+        html = html + "<th>Recintos de Recaudacion</th>"
+        html = html + "</tr>\n"
+        
+        provActual = 1
+        while provActual <= 7:
+            hospitales = diccionarioProvincias[provActual]
+            cantidad = 0
+            
+            indBase = 0
+            totBase = len(matrizBase)
+            while indBase < totBase:
+                fila = matrizBase[indBase]
+                if fila[9] in hospitales:
+                    cantidad = cantidad + 1
+                indBase = indBase + 1
+            
+            listaHosp = ""
+            indH = 0
+            while indH < len(hospitales):
+                listaHosp = listaHosp + hospitales[indH] + "<br>"
+                indH = indH + 1
+            
+            html = html + "<tr>"
+            html = html + "<td>" + str(provActual) + "</td>"
+            html = html + "<td>" + str(cantidad) + "</td>"
+            html = html + "<td>" + listaHosp + "</td>"
+            html = html + "</tr>\n"
+            
+            provActual = provActual + 1
+            
+        html = html + "</table>\n"
+        html = html + "</body>\n</html>"
+        
+        archivo = open("Reporte_Estadistico_Provincias.html", "w", encoding="utf-8")
+        archivo.write(html)
+        archivo.close()
+        
+        return "Reporte creado satisfactoriamente"
+        
+    except:
+        return "Reporte no creado."
+
+
 def validarCedula(pcedula):
     """
     Funcionamiento: Valida la cédula con formato #-####-#### y primer dígito diferente de 0.
@@ -1294,7 +1349,7 @@ def abrirVentanaReportes(baseDatos,ventanaPrincipal):
     ventanaPrincipal.withdraw()
     ventana=ctk.CTkToplevel()
     ventana.title("Reportes")
-    ventana.geometry("520x520")
+    ventana.geometry("520x750")
     titulo=ctk.CTkLabel(
         ventana,
         text="REPORTES",
@@ -1384,6 +1439,32 @@ def abrirVentanaReportes(baseDatos,ventanaPrincipal):
         command=reporteNoActivos
     )
     botonNoActivos.pack(pady=7)
+    opcionesProvincia = ["San José", "Alajuela", "Cartago", "Heredia", "Guanacaste", "Puntarenas", "Limón"]
+    opcionProvincia = ctk.CTkOptionMenu(ventana, values=opcionesProvincia, width=280)
+    opcionProvincia.pack(pady=5)
+    def repProvincia():
+        lugares = cargarLugaresDonacion()
+        provStr = opcionProvincia.get()
+        provInt = opcionesProvincia.index(provStr) + 1
+        mostrarMensaje(generarReporteProvincia(baseDatos, provStr, lugares[provInt]))
+    def repSangreProv():
+        lugares = cargarLugaresDonacion()
+        provStr = opcionProvincia.get()
+        provInt = opcionesProvincia.index(provStr) + 1
+        mostrarMensaje(reporteSangreProvincia(baseDatos, opcionTipoSangre.get(), provStr, lugares[provInt], tiposDeSangre))
+    def repMujeres():
+        mostrarMensaje(reporteMujeresONegativo(baseDatos, tiposDeSangre))
+    def repRecibe():
+        lugares = cargarLugaresDonacion()
+        mostrarMensaje(reporteDeQuienRecibe(baseDatos, opcionTipoSangre.get(), tiposDeSangre, lugares))
+    def repEstadistico():
+        lugares = cargarLugaresDonacion()
+        mostrarMensaje(reporteLugaresEstadistico(baseDatos, lugares))
+    ctk.CTkButton(ventana, text="Donantes por provincia (E1)", width=280, fg_color="green", command=repProvincia).pack(pady=4)
+    ctk.CTkButton(ventana, text="Sangre por provincia (E1)", width=280, fg_color="green", command=repSangreProv).pack(pady=4)
+    ctk.CTkButton(ventana, text="Mujeres O- (E1)", width=280, fg_color="green", command=repMujeres).pack(pady=4)
+    ctk.CTkButton(ventana, text="¿De quién recibe? (E1)", width=280, fg_color="green", command=repRecibe).pack(pady=4)
+    ctk.CTkButton(ventana, text="Estadístico de lugares (E1)", width=280, fg_color="green", command=repEstadistico).pack(pady=15)
     botonRegresar=ctk.CTkButton(
         ventana,
         text="Regresar",
@@ -1391,6 +1472,50 @@ def abrirVentanaReportes(baseDatos,ventanaPrincipal):
         command=regresar
     )
     botonRegresar.pack(pady=15)
+
+def cargarDatosInterfaz(baseDatos):
+    try:
+        nuevaMatriz = cargarBaseDatos("donadores.txt") 
+        baseDatos.clear()
+        for f in nuevaMatriz:
+            baseDatos.append(f)
+        messagebox.showinfo("Éxito", "Base de datos cargada.")
+    except:
+        messagebox.showerror("Error", "No se pudo cargar la base.")
+
+def abrirVentanaActualizarDonador(baseDatos, ventanaPrincipal):
+    ventanaPrincipal.withdraw()
+    ventanaAct = ctk.CTkToplevel()
+    ventanaAct.title("Actualizar donador")
+    ventanaAct.geometry("400x400")
+    
+    ctk.CTkLabel(ventanaAct, text="ACTUALIZAR DONADOR", font=("Arial",22,"bold")).pack(pady=15)
+    
+    entCedula = ctk.CTkEntry(ventanaAct, placeholder_text="Cédula a buscar")
+    entCedula.pack(pady=5)
+    entColumna = ctk.CTkEntry(ventanaAct, placeholder_text="Columna a cambiar")
+    entColumna.pack(pady=5)
+    entDato = ctk.CTkEntry(ventanaAct, placeholder_text="Nuevo dato")
+    entDato.pack(pady=5)
+    
+    cajaRes = ctk.CTkTextbox(ventanaAct, width=350, height=80)
+    cajaRes.pack(pady=10)
+    
+    def ejecutar():
+        try:
+            res = actualizarDatos(baseDatos, int(entCedula.get()), int(entColumna.get()), entDato.get())
+            cajaRes.delete("1.0", "end")
+            cajaRes.insert("end", res[1])
+        except:
+            cajaRes.delete("1.0", "end")
+            cajaRes.insert("end", "Error: Cédula/Columna deben ser números.")
+            
+    def regresar():
+        ventanaAct.destroy()
+        ventanaPrincipal.deiconify()
+        
+    ctk.CTkButton(ventanaAct, text="Actualizar", command=ejecutar).pack(pady=10)
+    ctk.CTkButton(ventanaAct, text="Regresar", command=regresar).pack(pady=10)
 
 def abrirVentanaPrincipal():
     baseDatos=[]
@@ -1412,19 +1537,18 @@ def abrirVentanaPrincipal():
         width=280,
         command=lambda: abrirVentanaInsertarDonador(baseDatos,ventana)
     )
-    botonInsertar.pack(pady=8)
     botonGenerar=ctk.CTkButton(
         ventana,
         text="2. Generar donadores",
         width=280,
-        command=lambda: messagebox.showinfo("Generar", "Función de E1.")
+        command=lambda: cargarDatosInterfaz(baseDatos)
     )
     botonGenerar.pack(pady=8)
-    botonActualizar=ctk.CTkButton(
+   botonActualizar=ctk.CTkButton(
         ventana,
         text="3. Actualizar datos del donador",
         width=280,
-        command=lambda: messagebox.showinfo("Actualizar", "Función de E1.")
+        command=lambda: abrirVentanaActualizarDonador(baseDatos, ventana)
     )
     botonActualizar.pack(pady=8)
     botonEliminar=ctk.CTkButton(
