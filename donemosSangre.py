@@ -5,6 +5,8 @@
 #Definición de funciones
 import re
 import datetime
+import customtkinter as ctk
+from tkinter import messagebox
 tiposDeSangre=(
     "O+",
     "O-",
@@ -1061,4 +1063,399 @@ def generarReporteDonantesNoActivos(pbaseDatos,pjustificaciones,ptiposDeSangre):
         return "Reporte creado satisfactoriamente."
     except:
         return "Reporte no creado. Vuelva a intentarlo."
+
+def abrirVentanaInsertarDonador(baseDatos,ventanaPrincipal):
+    ventanaPrincipal.withdraw()
+    ventana=ctk.CTkToplevel()
+    ventana.title("Insertar donador")
+    ventana.geometry("520x650")
+    titulo=ctk.CTkLabel(ventana,text="INSERTAR DONADOR",font=("Arial",22,"bold"))
+    titulo.pack(pady=15)
+    entradaNombre=ctk.CTkEntry(ventana,placeholder_text="Nombre")
+    entradaNombre.pack(pady=5)
+    entradaApellido1=ctk.CTkEntry(ventana,placeholder_text="Primer apellido")
+    entradaApellido1.pack(pady=5)
+    entradaApellido2=ctk.CTkEntry(ventana,placeholder_text="Segundo apellido")
+    entradaApellido2.pack(pady=5)
+    entradaCedula=ctk.CTkEntry(ventana,placeholder_text="Cédula #-####-####")
+    entradaCedula.pack(pady=5)
+    entradaFecha=ctk.CTkEntry(ventana,placeholder_text="Fecha nacimiento DD/MM/AAAA")
+    entradaFecha.pack(pady=5)
+    opcionTipoSangre=ctk.CTkOptionMenu(ventana,values=list(tiposDeSangre))
+    opcionTipoSangre.pack(pady=5)
+    sexoVariable=ctk.StringVar(value="Femenino")
+    radioFemenino=ctk.CTkRadioButton(ventana,text="Femenino",variable=sexoVariable,value="Femenino")
+    radioFemenino.pack(pady=3)
+    radioMasculino=ctk.CTkRadioButton(ventana,text="Masculino",variable=sexoVariable,value="Masculino")
+    radioMasculino.pack(pady=3)
+    entradaPeso=ctk.CTkEntry(ventana,placeholder_text="Peso")
+    entradaPeso.pack(pady=5)
+    entradaTelefono=ctk.CTkEntry(ventana,placeholder_text="Teléfono ####-####")
+    entradaTelefono.pack(pady=5)
+    entradaCorreo=ctk.CTkEntry(ventana,placeholder_text="Correo")
+    entradaCorreo.pack(pady=5)
+    cajaResultado=ctk.CTkTextbox(ventana,width=420,height=120)
+    cajaResultado.pack(pady=10)
+
+    def registrar():
+        baseDatosActualizada,mensaje,retroalimentacion=insertarDonador(
+            baseDatos,
+            entradaNombre.get(),
+            entradaApellido1.get(),
+            entradaApellido2.get(),
+            entradaCedula.get(),
+            opcionTipoSangre.get(),
+            sexoVariable.get(),
+            entradaFecha.get(),
+            entradaPeso.get(),
+            entradaCorreo.get(),
+            entradaTelefono.get(),
+            tiposDeSangre
+        )
+
+        cajaResultado.delete("1.0","end")
+        cajaResultado.insert("end",mensaje+"\n")
+
+        for dato in retroalimentacion:
+            cajaResultado.insert("end",dato+"\n")
+
+    def limpiar():
+        entradaNombre.delete(0,"end")
+        entradaApellido1.delete(0,"end")
+        entradaApellido2.delete(0,"end")
+        entradaCedula.delete(0,"end")
+        entradaFecha.delete(0,"end")
+        entradaPeso.delete(0,"end")
+        entradaTelefono.delete(0,"end")
+        entradaCorreo.delete(0,"end")
+        cajaResultado.delete("1.0","end")
+        sexoVariable.set("Femenino")
+
+    def regresar():
+        ventana.destroy()
+        ventanaPrincipal.deiconify()
+    botonRegistrar=ctk.CTkButton(ventana,text="Registrar",command=registrar)
+    botonRegistrar.pack(pady=5)
+    botonLimpiar=ctk.CTkButton(ventana,text="Limpiar",command=limpiar)
+    botonLimpiar.pack(pady=5)
+    botonRegresar=ctk.CTkButton(ventana,text="Regresar",command=regresar)
+    botonRegresar.pack(pady=5)
+
+def abrirVentanaEliminarDonador(baseDatos,ventanaPrincipal):
+    ventanaPrincipal.withdraw()
+    ventana=ctk.CTkToplevel()
+    ventana.title("Eliminar donador")
+    ventana.geometry("480x500")
+    titulo=ctk.CTkLabel(
+        ventana,
+        text="ELIMINAR DONADOR",
+        font=("Arial",22,"bold")
+    )
+    titulo.pack(pady=15)
+    entradaCedula=ctk.CTkEntry(
+        ventana,
+        placeholder_text="Cédula #-####-####",
+        width=280
+    )
+    entradaCedula.pack(pady=10)
+    opcionesJustificacion=[
+        "1. Enfermedades infecciosas o crónicas",
+        "2. Conductas de riesgo",
+        "3. Factores de salud física",
+        "4. Procedimientos médicos recientes",
+        "5. Uso de medicamentos",
+        "6. Estilo de vida o viajes recientes",
+        "7. Situaciones específicas"
+    ]
+    opcionJustificacion=ctk.CTkOptionMenu(
+        ventana,
+        values=opcionesJustificacion,
+        width=320
+    )
+    opcionJustificacion.pack(pady=10)
+    cajaResultado=ctk.CTkTextbox(
+        ventana,
+        width=400,
+        height=120
+    )
+    cajaResultado.pack(pady=10)
+    def eliminar():
+        justificacion=opcionJustificacion.get()[0]
+        baseDatosActualizada,mensaje=eliminarDonante(
+            baseDatos,
+            entradaCedula.get(),
+            justificacion,
+            "S"
+        )
+        cajaResultado.delete("1.0","end")
+        cajaResultado.insert("end",mensaje)
+    def limpiar():
+        entradaCedula.delete(0,"end")
+        opcionJustificacion.set(opcionesJustificacion[0])
+        cajaResultado.delete("1.0","end")
+    def regresar():
+        ventana.destroy()
+        ventanaPrincipal.deiconify()
+    botonEliminar=ctk.CTkButton(
+        ventana,
+        text="Eliminar",
+        command=eliminar
+    )
+    botonEliminar.pack(pady=8)
+    botonLimpiar=ctk.CTkButton(
+        ventana,
+        text="Limpiar",
+        command=limpiar
+    )
+    botonLimpiar.pack(pady=8)
+    botonRegresar=ctk.CTkButton(
+        ventana,
+        text="Regresar",
+        command=regresar
+    )
+    botonRegresar.pack(pady=8)
+
+def abrirVentanaInsertarLugar(lugaresDonacion,ventanaPrincipal):
+    ventanaPrincipal.withdraw()
+
+    ventana=ctk.CTkToplevel()
+    ventana.title("Insertar lugar de donación")
+    ventana.geometry("480x420")
+    titulo=ctk.CTkLabel(
+        ventana,
+        text="INSERTAR LUGAR DE DONACIÓN",
+        font=("Arial",22,"bold")
+    )
+    titulo.pack(pady=15)
+    opcionesProvincia=[
+        "1. San José",
+        "2. Alajuela",
+        "3. Cartago",
+        "4. Heredia",
+        "5. Guanacaste",
+        "6. Puntarenas",
+        "7. Limón"
+    ]
+    opcionProvincia=ctk.CTkOptionMenu(
+        ventana,
+        values=opcionesProvincia,
+        width=280
+    )
+    opcionProvincia.pack(pady=10)
+    entradaLugar=ctk.CTkEntry(
+        ventana,
+        placeholder_text="Nombre del nuevo lugar",
+        width=280
+    )
+    entradaLugar.pack(pady=10)
+    cajaResultado=ctk.CTkTextbox(
+        ventana,
+        width=380,
+        height=100
+    )
+    cajaResultado.pack(pady=10)
+    def registrar():
+        provincia=opcionProvincia.get()[0]
+        lugar=entradaLugar.get()
+        lugaresDonacionActualizados,mensaje=insertarLugarDonacion(
+            lugaresDonacion,
+            provincia,
+            lugar
+        )
+        cajaResultado.delete("1.0","end")
+        cajaResultado.insert("end",mensaje)
+    def limpiar():
+        opcionProvincia.set(opcionesProvincia[0])
+        entradaLugar.delete(0,"end")
+        cajaResultado.delete("1.0","end")
+    def regresar():
+        ventana.destroy()
+        ventanaPrincipal.deiconify()
+    botonRegistrar=ctk.CTkButton(
+        ventana,
+        text="Registrar",
+        command=registrar
+    )
+    botonRegistrar.pack(pady=8)
+    botonLimpiar=ctk.CTkButton(
+        ventana,
+        text="Limpiar",
+        command=limpiar
+    )
+    botonLimpiar.pack(pady=8)
+    botonRegresar=ctk.CTkButton(
+        ventana,
+        text="Regresar",
+        command=regresar
+    )
+    botonRegresar.pack(pady=8)
+
+def abrirVentanaReportes(baseDatos,ventanaPrincipal):
+    ventanaPrincipal.withdraw()
+    ventana=ctk.CTkToplevel()
+    ventana.title("Reportes")
+    ventana.geometry("520x520")
+    titulo=ctk.CTkLabel(
+        ventana,
+        text="REPORTES",
+        font=("Arial",22,"bold")
+    )
+    titulo.pack(pady=15)
+    cajaResultado=ctk.CTkTextbox(
+        ventana,
+        width=420,
+        height=100
+    )
+    cajaResultado.pack(pady=10)
+    entradaEdadInicial=ctk.CTkEntry(
+        ventana,
+        placeholder_text="Edad inicial"
+    )
+    entradaEdadInicial.pack(pady=5)
+    entradaEdadFinal=ctk.CTkEntry(
+        ventana,
+        placeholder_text="Edad final"
+    )
+    entradaEdadFinal.pack(pady=5)
+    opcionTipoSangre=ctk.CTkOptionMenu(
+        ventana,
+        values=list(tiposDeSangre),
+        width=220
+    )
+    opcionTipoSangre.pack(pady=5)
+    def mostrarMensaje(mensaje):
+        cajaResultado.delete("1.0","end")
+        cajaResultado.insert("end",mensaje)
+    def reporteRangoEdad():
+        mensaje=generarReporteRangoEdad(
+            baseDatos,
+            entradaEdadInicial.get(),
+            entradaEdadFinal.get()
+        )
+        mostrarMensaje(mensaje)
+    def reporteListaCompleta():
+        mensaje=generarReporteListaCompleta(
+            baseDatos,
+            tiposDeSangre
+        )
+        mostrarMensaje(mensaje)
+    def reporteAQuienPuedeDonar():
+        mensaje=generarReporteAQuienPuedeDonar(
+            baseDatos,
+            opcionTipoSangre.get(),
+            tiposDeSangre
+        )
+        mostrarMensaje(mensaje)
+    def reporteNoActivos():
+        mensaje=generarReporteDonantesNoActivos(
+            baseDatos,
+            justificaciones,
+            tiposDeSangre
+        )
+        mostrarMensaje(mensaje)
+    def regresar():
+        ventana.destroy()
+        ventanaPrincipal.deiconify()
+    botonRangoEdad=ctk.CTkButton(
+        ventana,
+        text="Reporte por rango de edad",
+        width=280,
+        command=reporteRangoEdad
+    )
+    botonRangoEdad.pack(pady=7)
+    botonListaCompleta=ctk.CTkButton(
+        ventana,
+        text="Lista completa de donadores",
+        width=280,
+        command=reporteListaCompleta
+    )
+    botonListaCompleta.pack(pady=7)
+    botonAQuien=ctk.CTkButton(
+        ventana,
+        text="¿A quién puede donar?",
+        width=280,
+        command=reporteAQuienPuedeDonar
+    )
+    botonAQuien.pack(pady=7)
+    botonNoActivos=ctk.CTkButton(
+        ventana,
+        text="Donantes no activos",
+        width=280,
+        command=reporteNoActivos
+    )
+    botonNoActivos.pack(pady=7)
+    botonRegresar=ctk.CTkButton(
+        ventana,
+        text="Regresar",
+        width=280,
+        command=regresar
+    )
+    botonRegresar.pack(pady=15)
+
+def abrirVentanaPrincipal():
+    baseDatos=[]
+    lugaresDonacion=cargarLugaresDonacion()
+    ventana=ctk.CTk()
+    ventana.title("Donemos Sangre")
+    ventana.geometry("500x500")
+    ctk.set_appearance_mode("light")
+    ctk.set_default_color_theme("dark-blue")
+    titulo=ctk.CTkLabel(
+        ventana,
+        text="DONEMOS SANGRE",
+        font=("Arial",24,"bold")
+    )
+    titulo.pack(pady=25)
+    botonInsertar=ctk.CTkButton(
+        ventana,
+        text="1. Insertar donador",
+        width=280,
+        command=lambda: abrirVentanaInsertarDonador(baseDatos,ventana)
+    )
+    botonInsertar.pack(pady=8)
+    botonGenerar=ctk.CTkButton(
+        ventana,
+        text="2. Generar donadores",
+        width=280,
+        command=lambda: messagebox.showinfo("Generar", "Función de E1.")
+    )
+    botonGenerar.pack(pady=8)
+    botonActualizar=ctk.CTkButton(
+        ventana,
+        text="3. Actualizar datos del donador",
+        width=280,
+        command=lambda: messagebox.showinfo("Actualizar", "Función de E1.")
+    )
+    botonActualizar.pack(pady=8)
+    botonEliminar=ctk.CTkButton(
+        ventana,
+        text="4. Eliminar donador",
+        width=280,
+        command=lambda: abrirVentanaEliminarDonador(baseDatos,ventana)
+    )
+    botonEliminar.pack(pady=8)
+    botonLugar=ctk.CTkButton(
+        ventana,
+        text="5. Insertar lugar de donación",
+        width=280,
+        command=lambda: abrirVentanaInsertarLugar(lugaresDonacion,ventana)
+    )
+    botonLugar.pack(pady=8)
+    botonReportes=ctk.CTkButton(
+        ventana,
+        text="6. Reportes",
+        width=280,
+        command=lambda: abrirVentanaReportes(baseDatos,ventana)
+    )
+    botonReportes.pack(pady=8)
+    botonSalir=ctk.CTkButton(
+        ventana,
+        text="7. Salir",
+        width=280,
+        command=ventana.destroy
+    )
+    botonSalir.pack(pady=20)
+    ventana.mainloop()
+
 #Inicio del programa principal
+abrirVentanaPrincipal()
