@@ -1537,6 +1537,7 @@ def abrirVentanaPrincipal():
         width=280,
         command=lambda: abrirVentanaInsertarDonador(baseDatos,ventana)
     )
+    botonInsertar.pack(pady=8)
     botonGenerar=ctk.CTkButton(
         ventana,
         text="2. Generar donadores",
@@ -1544,7 +1545,7 @@ def abrirVentanaPrincipal():
         command=lambda: cargarDatosInterfaz(baseDatos)
     )
     botonGenerar.pack(pady=8)
-   botonActualizar=ctk.CTkButton(
+    botonActualizar=ctk.CTkButton(
         ventana,
         text="3. Actualizar datos del donador",
         width=280,
